@@ -49,6 +49,10 @@ class Aichess():
         self.currentStateW = self.chess.boardSim.currentStateW;
         self.depthMax = 8;
         self.checkMate = False
+        self.rookValueW = 50;
+        self.kingValueW = 100;
+        self.rookValueB = -50;
+        self.kingValueB = -100;
 
     def getCurrentState(self):
 
@@ -97,9 +101,12 @@ class Aichess():
         else:
             return False
 
-    def isCheckMate(self, mystate):
+
+    def isCheckMate(self, currentStateW, currentStateB):
 
         # Your Code
+        return 0
+
         
         
         
@@ -107,6 +114,7 @@ class Aichess():
     def DepthFirstSearch(self, currentState, depth):
     
         # Your Code here
+        return 0
 
 
  
@@ -114,19 +122,61 @@ class Aichess():
             
         # Your Code here
 
+        return 0
 
 
     def BestFirstSearch(self, currentState):
             
         # Your Code here
-                
+        return 0
+
                 
                 
     def AStarSearch(self, currentState):
             
         # Your Code here
-        
-        
+        return 0
+
+    def evaluate(self, currentStateW, currentStateB):
+
+        value = 0
+
+        if len(currentStateB) == 2:
+            value += (self.rookValueB + self.kingValueB)
+
+        if len(currentStateW) == 2:
+            value += (self.rookValueW + self.kingValueW)
+
+        if len(currentStateB) == 1:
+            if currentStateB[0][2] == 2:
+                value += self.rookValueW
+            elif currentStateB[0][2] == 6:
+                value += self.kingValueW
+
+        if len(currentStateB) == 1:
+            if currentStateB[0][2] == 8:
+                value += self.rookValueB
+            elif currentStateB[0][2] == 12:
+                value += self.kingValueB
+
+        return value
+
+    def MiniMax(self, currentState):
+
+        # Your Code here
+        return 0
+
+    def max_value(self, currentState):
+        # Your Code here
+
+        v = float('-inf')
+        return 0
+
+    def min_value(self, currentState):
+        # Your Code here
+
+        v = float('inf')
+        return 0
 
 def translate(s):
     """
