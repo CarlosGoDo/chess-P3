@@ -47,12 +47,28 @@ class Aichess():
         self.listVisitedStates = []
         self.pathToTarget = []
         self.currentStateW = self.chess.boardSim.currentStateW;
+        self.currentStateB = self.chess.boardSim.currentStateB;
         self.depthMax = 8;
         self.checkMate = False
         self.rookValueW = 50;
-        self.kingValueW = 100;
+        self.kingValueW = 900;
         self.rookValueB = -50;
-        self.kingValueB = -100;
+        self.kingValueB = -900;
+
+    def hacer_movimiento(self, standard_current_state, standard_next_state):
+        start = [e for e in standard_current_state if e not in standard_next_state]
+        to = [e for e in standard_next_state if e not in standard_current_state]
+        start, to = start[0][0:2], to[0][0:2]
+        aichess.chess.moveSim(start, to)
+    def nei_corrector(self, nei):
+        """
+        En esta función observaremos si el nei o estado futuro del tablero al que vamos tiene algún tipo de error
+        como poner dos fichas en la misma posición o transformar una torre en rey.
+        """
+        if nei[0][2] != nei[1][2]: #En este caso tenemos un estado del tablero futuro donde las 2 fichas són iguales
+            if (nei[0][0] != nei[1][0]) and (nei[0][1] != nei[1][1]):#Aquí comprobamos que las fichas no se superpongan en la misma posición del tablero.
+                return True
+        return False
 
     def getCurrentState(self):
 
@@ -105,37 +121,16 @@ class Aichess():
     def isCheckMate(self, currentStateW, currentStateB):
 
         # Your Code
-        return 0
+        if len(currentStateB) == 0 or len(currentStateW) == 0:
+            return True
 
-        
-        
-        
+        if len(currentStateB) == 1 or len(currentStateW) == 1:
+            if currentStateW[0][2]== 2:
+                return True
+            elif currentStateB[0][2] == 8 :
+                return True
 
-    def DepthFirstSearch(self, currentState, depth):
-    
-        # Your Code here
-        return 0
-
-
- 
-    def BreadthFirstSearch(self, currentState):
-            
-        # Your Code here
-
-        return 0
-
-
-    def BestFirstSearch(self, currentState):
-            
-        # Your Code here
-        return 0
-
-                
-                
-    def AStarSearch(self, currentState):
-            
-        # Your Code here
-        return 0
+        return False
 
     def evaluate(self, currentStateW, currentStateB):
 
@@ -147,10 +142,10 @@ class Aichess():
         if len(currentStateW) == 2:
             value += (self.rookValueW + self.kingValueW)
 
-        if len(currentStateB) == 1:
-            if currentStateB[0][2] == 2:
+        if len(currentStateW) == 1:
+            if currentStateW[0][2] == 2:
                 value += self.rookValueW
-            elif currentStateB[0][2] == 6:
+            elif currentStateW[0][2] == 6:
                 value += self.kingValueW
 
         if len(currentStateB) == 1:
@@ -161,10 +156,31 @@ class Aichess():
 
         return value
 
-    def MiniMax(self, currentState):
-
+    def miniMax(self,currentStateW,currentStateB,depth, player,chess):
         # Your Code here
-        return 0
+
+        if depth ==0 or isCheckMate(currentStateW, currentStateB):
+            return self.evaluate(currentStateW, currentStateB), currentStateW
+        if player:
+            maxEval = float('-inf')
+            best_move = None
+            for nei in self.getListNextStatesW(currentStateW):
+                if self.nei_corrector(nei):
+                    eval = self.minimax(nei,currentStateB,depth-1,False,chess)[0]
+                    maxEval = max (maxEval,eval)
+                    if maxEval == eval:
+                        best_move = nei
+            return maxEval, best_move
+        else:
+            minEval = float('inf')
+            best_move = None
+            for nei in self.getListNextStatesW(currentStateB):
+                if self.nei_corrector(nei):
+                    eval = self.minimax(currentStateW,nei,depth-1,True,chess)
+                    minEval = min(minEval, eval)
+                    if minEval == eval:
+                        best_move = nei
+            return minEval, best_move
 
     def max_value(self, currentState):
         # Your Code here
