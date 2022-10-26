@@ -80,6 +80,12 @@ class Aichess():
         self.listNextStates = self.chess.boardSim.listNextStates.copy()
 
         return self.listNextStates
+    def getListNextStatesB(self, myState):
+
+        self.chess.boardSim.getListNextStatesB(myState)
+        self.listNextStates = self.chess.boardSim.listNextStates.copy()
+
+        return self.listNextStates
 
     def isSameState(self, a, b):
 
@@ -159,13 +165,14 @@ class Aichess():
     def miniMax(self,currentStateW,currentStateB,depth, player,chess):
         # Your Code here
 
-        if depth ==0 or isCheckMate(currentStateW, currentStateB):
+        if depth ==0 or self.isCheckMate(currentStateW, currentStateB):
             return self.evaluate(currentStateW, currentStateB), currentStateW
         if player:
             maxEval = float('-inf')
             best_move = None
             for nei in self.getListNextStatesW(currentStateW):
                 if self.nei_corrector(nei):
+                    self.hacer_movimiento(currentStateW, nei)
                     eval = self.minimax(nei,currentStateB,depth-1,False,chess)[0]
                     maxEval = max (maxEval,eval)
                     if maxEval == eval:
@@ -176,6 +183,7 @@ class Aichess():
             best_move = None
             for nei in self.getListNextStatesW(currentStateB):
                 if self.nei_corrector(nei):
+                    self.hacer_movimiento(currentStateB, nei)
                     eval = self.minimax(currentStateW,nei,depth-1,True,chess)
                     minEval = min(minEval, eval)
                     if minEval == eval:
@@ -229,21 +237,25 @@ if __name__ == "__main__":
 
     TA[7][0] = 2
     TA[7][4] = 6
+
+
+    TA[0][0] = 8
     TA[0][4] = 12
 
     # initialise board
     print("stating AI chess... ")
     aichess = Aichess(TA, True)
-    currentState = aichess.chess.board.currentStateW.copy()
+    currentStateB = aichess.chess.board.currentStateB.copy()
+
 
     print("printing board")
     aichess.chess.boardSim.print_board()
 
     # get list of next states for current state
-    print("current State", currentState)
+    print("current State", currentStateB)
 
     # it uses board to get them... careful 
-    aichess.getListNextStatesW(currentState)
+    aichess.getListNextStatesB(currentStateB)
     #   aichess.getListNextStatesW([[7,4,2],[7,4,6]])
     print("list next states ", aichess.listNextStates)
 
@@ -251,7 +263,7 @@ if __name__ == "__main__":
     # aichess.chess.boardSim.listVisitedStates = []
     # find the shortest path, initial depth 0
     depth = 0
-    aichess.BreadthFirstSearch(currentState)
+    #aichess.BreadthFirstSearch(currentState)
     #aichess.DepthFirstSearch(currentState, depth)
 
     # MovesToMake = ['1e','2e','2e','3e','3e','4d','4d','3c']
