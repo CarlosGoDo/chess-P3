@@ -210,14 +210,14 @@ class Aichess():
         if player:
             maxEval = float('-inf')
             best_move = None
-            lista = self.getListnextStatesX(currentStatePlayer)
-            for nei in lista:
+            lista_player = self.getListnextStatesX(currentStatePlayer)
+            for nei in lista_player:
                 if self.nei_corrector(nei):
                     chess_temp = copy.deepcopy(self.chess)
                     rival_temp = currentStateRival
                     self.hacer_movimiento(currentStatePlayer, nei)
                     currentStateRival = aichess.elimina_piece(nei,currentStateRival)
-                    eval = self.miniMax(nei,currentStateRival,depth-1,False)[0]
+                    eval = self.miniMax(currentStateRival,nei,depth-1,False)[0]
                     maxEval = max(maxEval,eval)
                     if maxEval == eval:
                         best_move = nei
@@ -227,9 +227,9 @@ class Aichess():
         else:
             minEval = float('inf')
             best_move = None
-            lista = self.getListnextStatesX(currentStateRival)
+            lista_rival = self.getListnextStatesX(currentStateRival)
             #print("siguientes estados: ",lista)
-            for nei in lista:
+            for nei in lista_rival:
                 if self.nei_corrector(nei):
                     temp = copy.deepcopy(self.chess)
                     player_temp = currentStatePlayer
@@ -309,38 +309,44 @@ if __name__ == "__main__":
     print("current State", currentStateB)
 
     # it uses board to get them... careful 
-    aichess.getListNextStatesB(currentStateB)
+
 
     #print("list next states ", aichess.listNextStates)
 
     # starting from current state find the end state (check mate) - recursive function
     # aichess.chess.boardSim.listVisitedStates = []
     # find the shortest path, initial depth 0
-    depth = 4
+    depth = 1
     aichess.chess.boardSim.print_board()
     #aux = aichess.miniMax(currentStateW,currentStateB,depth,True)
     #estados = aichess.getListNextStatesW([[7, 4, 2], [7, 4, 6]])
     #aux = aichess.miniMax(currentStateW,  currentStateB, depth, True)[1]
+    #print("siguiente movimiento W", aux)
+    #aichess.hacer_movimiento(currentStateW, aux)
+    #aichess.elimina_piece(aichess.chess.boardSim.currentStateB, aichess.chess.boardSim.currentStateW)
     #aichess.chess.boardSim.print_board()
+    #print("next states", aichess.getListNextStatesW(aichess.chess.boardSim.currentStateW))
+    #print(" states", aichess.chess.boardSim.currentStateW)
 
     #aux2 = aichess.miniMax(currentStateB, currentStateW, depth, True)[1]
     #print("siguientes estados: ",estados)
-    #print("siguiente movimiento W",aux)
+
+
     #print("siguiente movimiento B", aux2)
     #aichess.chess.boardSim.print_board()
 
 
-    #aichess.hacer_movimiento(currentStateB, [[7, 0, 8], [0, 4, 12]])
-    #currentStateB,currentStateW = aichess.elimina_piece(aichess.chess.boardSim.currentStateB,aichess.chess.boardSim.currentStateW)
-    #print(currentStateB,currentStateW)
-    #print("estados pieza blanca",aichess.getListNextStatesW(currentStateW))
+    aichess.hacer_movimiento(currentStateB, [[7, 0, 8], [0, 4, 12]])
+    aichess.elimina_piece(aichess.chess.boardSim.currentStateB,aichess.chess.boardSim.currentStateW)
+    print(currentStateB,currentStateW)
+    print("estados pieza blanca",aichess.chess.boardSim.currentStateW)
     #aichess.chess.boardSim.print_board()
     #print(aichess.chess.currentStateW)
     #aichess.chess.boardSim.print_board()
     #aux1 = [[7, 0, 2], [6, 4, 6]]
     #aichess.hacer_movimiento(currentStateB, aux1)
 
-
+    """
     i = 1
     tablas = []
     while i !=8:
@@ -368,7 +374,7 @@ if __name__ == "__main__":
 
     for i in range(len(tablas)):
         tablas[i].print_board()
-
+    """
     #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
     #print("siguientes estados Negras: ", aichess.getListNextStatesW(currentStateB))
 
