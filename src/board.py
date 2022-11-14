@@ -40,7 +40,7 @@ class Board():
         """
         Initializes the board per standard chess rules
         """
-        self.listNames = ['P', 'R', 'H', 'B', 'Q', 'K', 'P', 'R', 'H', 'B', 'Q', 'K']
+        self.listNames = ['P', 'R', 'H', 'B', 'Q', 'K', '\033[94m' + 'P' + '\033[0m', '\033[94m' + 'R' + '\033[0m', '\033[94m' + 'H' + '\033[0m','\033[94m' + 'B' + '\033[0m', '\033[94m' + 'Q' + '\033[0m', '\033[94m' + 'K' + '\033[0m']
 
         self.listSuccessorStates = []
         self.listNextStates = []
@@ -510,7 +510,6 @@ class Board():
             mypiece = mypieces[j]
             listOtherPieces = mypieces.copy()
             listOtherPieces.remove(mypiece)
-            print("hola")
             listPotentialNextStates = []
             print(type(str(self.board[mypiece[0]][mypiece[1]])))
             if (str(self.board[mypiece[0]][mypiece[1]]) == '\033[94m' + 'K' + '\033[0m'):

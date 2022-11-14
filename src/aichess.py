@@ -65,10 +65,38 @@ class Aichess():
         En esta función observaremos si el nei o estado futuro del tablero al que vamos tiene algún tipo de error
         como poner dos fichas en la misma posición o transformar una torre en rey.
         """
-        if nei[0][2] != nei[1][2]: #En este caso tenemos un estado del tablero futuro donde las 2 fichas són iguales
-            if (nei[0][0] != nei[1][0]) and (nei[0][1] != nei[1][1]):#Aquí comprobamos que las fichas no se superpongan en la misma posición del tablero.
-                return True
+        if(len(nei)>1):
+            if nei[0][2] != nei[1][2]: #En este caso tenemos un estado del tablero futuro donde las 2 fichas són iguales
+                if (nei[0][0] != nei[1][0]) and (nei[0][1] != nei[1][1]):#Aquí comprobamos que las fichas no se superpongan en la misma posición del tablero.
+                    return True
+        elif len(nei)== 1:
+            return True
         return False
+    def elimina_piece(self, currentState_move, currentState_not_move):
+        """
+        Args:
+            currentState_move: Jugador que ha realizado el movimiento
+            currentState_not_move:Jugador que ¡NO! ha realizado el movimiento.
+
+        Returns:Después de realizar un movimiento se comprueba si existen dos piezas rivales en la misma posición.
+        Si se cumple esta condición elimina la pieza de currentState_not_move ya que quiere decir que ha sido eliminada
+        del tablero.
+        """
+        index = 0
+        eliminated = None
+        for i in range(len(currentState_move)):
+            for j in range (len(currentState_not_move)):
+                if currentState_move[i][0]==currentState_not_move[j][0] and currentState_move[i][1]==currentState_not_move[j][1]:
+                    eliminated = currentState_not_move[j]
+                    index = j
+        if eliminated != None:
+            currentState_not_move.pop(index)
+            if eliminated[2] < 7:
+                currentState_not_move = self.chess.boardSim.currentStateW
+            else:
+                currentState_not_move = self.chess.boardSim.currentStateB
+
+        return  currentState_not_move
 
     def getCurrentState(self):
 
@@ -89,9 +117,10 @@ class Aichess():
 
     def getListnextStatesX(self, mypieces):
         if mypieces[0][2] > 6:
-            return self.getListnextStatesB(mypieces)
+            return self.getListNextStatesB(mypieces)
         else:
-            return self.getListnextStatesW(mypieces)
+            return self.getListNextStatesW(mypieces)
+
 
     def isSameState(self, a, b):
 
@@ -133,71 +162,85 @@ class Aichess():
     def isCheckMate(self, currentStateW, currentStateB):
 
         # Your Code
+
         if len(currentStateB) == 0 or len(currentStateW) == 0:
             return True
-
-        if len(currentStateB) == 1 or len(currentStateW) == 1:
-            if currentStateW[0][2]== 2:
-                return True
-            elif currentStateB[0][2] == 8 :
-                return True
-
+        if len(currentStateB) == 1  and currentStateB[0][2]== 8:
+            return True
+        if len(currentStateW) == 1 and currentStateW[0][2]== 2:
+            return True
         return False
 
     def evaluate(self, currentStateW, currentStateB):
 
         value = 0
-
         if len(currentStateB) == 2:
+            #print("entro en len 2 B ")
             value += (self.rookValueB + self.kingValueB)
 
         if len(currentStateW) == 2:
+            #print("entro en len 2 W")
             value += (self.rookValueW + self.kingValueW)
 
         if len(currentStateW) == 1:
             if currentStateW[0][2] == 2:
+                #print("entro en len 1 W R ")
                 value += self.rookValueW
             elif currentStateW[0][2] == 6:
+                #print("entro en len 1 W K ")
                 value += self.kingValueW
 
         if len(currentStateB) == 1:
             if currentStateB[0][2] == 8:
+                #print("entro en len 1 B R ")
                 value += self.rookValueB
             elif currentStateB[0][2] == 12:
+                #print("entro en len 1 B K ")
                 value += self.kingValueB
-
         return value
 
     def miniMax(self,currentStatePlayer,currentStateRival,depth, player):
         # Your Code here
-
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
-            return self.evaluate(currentStatePlayer, currentStateRival), currentStatePlayer
+            lista = self.getListnextStatesX(currentStatePlayer)
+            #print("siguientes estados estamos en el check: ", lista)
+            metrica = self.evaluate(currentStatePlayer, currentStateRival)
+            #print("valor de la jugada: ",metrica)
+            return metrica, currentStatePlayer
         if player:
             maxEval = float('-inf')
             best_move = None
-            for nei in self.getListnextStatesX(currentStatePlayer):
+            lista = self.getListnextStatesX(currentStatePlayer)
+            for nei in lista:
                 if self.nei_corrector(nei):
-
-                    temp = copy.deepcopy(currentStateRival)
+                    chess_temp = copy.deepcopy(self.chess)
+                    rival_temp = currentStateRival
                     self.hacer_movimiento(currentStatePlayer, nei)
-                    eval = self.minimax(nei,currentStateRival,depth-1,False)[0]
+                    currentStateRival = aichess.elimina_piece(nei,currentStateRival)
+                    eval = self.miniMax(nei,currentStateRival,depth-1,False)[0]
                     maxEval = max(maxEval,eval)
                     if maxEval == eval:
                         best_move = nei
-                    self.hacer_movimiento(nei, currentStatePlayer)
+                    self.chess = chess_temp
+                    currentStateRival = rival_temp
             return maxEval, best_move
         else:
             minEval = float('inf')
             best_move = None
-            for nei in self.getListnextStatesX(currentStateRival):
+            lista = self.getListnextStatesX(currentStateRival)
+            #print("siguientes estados: ",lista)
+            for nei in lista:
                 if self.nei_corrector(nei):
+                    temp = copy.deepcopy(self.chess)
+                    player_temp = currentStatePlayer
                     self.hacer_movimiento(currentStateRival, nei)
-                    eval = self.minimax(currentStatePlayer,nei,depth-1,True)[0]
+                    currentStatePlayer = aichess.elimina_piece(nei, currentStatePlayer)
+                    eval = self.miniMax(currentStatePlayer,nei,depth-1,True)[0]
                     minEval = min(minEval, eval)
                     if minEval == eval:
                         best_move = nei
-                    self.hacer_movimiento(nei, currentStatePlayer)
+                    self.chess = temp
+                    currentStatePlayer = player_temp
             return minEval, best_move
 
     def max_value(self, currentState):
@@ -260,22 +303,77 @@ if __name__ == "__main__":
 
     print("printing board")
     aichess.chess.boardSim.print_board()
+    temp = copy.deepcopy(aichess.chess)
 
     # get list of next states for current state
     print("current State", currentStateB)
 
     # it uses board to get them... careful 
     aichess.getListNextStatesB(currentStateB)
-    #   aichess.getListNextStatesW([[7,4,2],[7,4,6]])
-    print("list next states ", aichess.listNextStates)
+
+    #print("list next states ", aichess.listNextStates)
 
     # starting from current state find the end state (check mate) - recursive function
     # aichess.chess.boardSim.listVisitedStates = []
     # find the shortest path, initial depth 0
     depth = 4
+    aichess.chess.boardSim.print_board()
+    #aux = aichess.miniMax(currentStateW,currentStateB,depth,True)
+    #estados = aichess.getListNextStatesW([[7, 4, 2], [7, 4, 6]])
+    #aux = aichess.miniMax(currentStateW,  currentStateB, depth, True)[1]
+    #aichess.chess.boardSim.print_board()
 
-    aux =aichess.miniMax(currentStateW,currentStateB,depth,True)
-    print("siguiente movimiento",aux)
+    #aux2 = aichess.miniMax(currentStateB, currentStateW, depth, True)[1]
+    #print("siguientes estados: ",estados)
+    #print("siguiente movimiento W",aux)
+    #print("siguiente movimiento B", aux2)
+    #aichess.chess.boardSim.print_board()
+
+
+    #aichess.hacer_movimiento(currentStateB, [[7, 0, 8], [0, 4, 12]])
+    #currentStateB,currentStateW = aichess.elimina_piece(aichess.chess.boardSim.currentStateB,aichess.chess.boardSim.currentStateW)
+    #print(currentStateB,currentStateW)
+    #print("estados pieza blanca",aichess.getListNextStatesW(currentStateW))
+    #aichess.chess.boardSim.print_board()
+    #print(aichess.chess.currentStateW)
+    #aichess.chess.boardSim.print_board()
+    #aux1 = [[7, 0, 2], [6, 4, 6]]
+    #aichess.hacer_movimiento(currentStateB, aux1)
+
+
+    i = 1
+    tablas = []
+    while i !=8:
+        tabla = aichess.chess.boardSim
+        tablas.append(tabla)
+        if i%2 !=0:
+            aux = aichess.miniMax(currentStateW, currentStateB, depth, True)[1]
+            if aux != None:
+                aichess.hacer_movimiento(currentStateW, aux)
+                tabla = aichess.chess.boardSim
+                tablas.append(tabla)
+            else:
+                print("soy nulo")
+        else:
+            aux = aichess.miniMax(currentStateB, currentStateW, depth, True)[1]
+            if aux != None:
+                aichess.hacer_movimiento(currentStateB, aux)
+                tabla = aichess.chess.boardSim
+                tablas.append(tabla)
+            else:
+                print("soy nulo")
+
+        i+=1
+        print(i)
+
+    for i in range(len(tablas)):
+        tablas[i].print_board()
+
+    #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
+    #print("siguientes estados Negras: ", aichess.getListNextStatesW(currentStateB))
+
+
+
     #aichess.BreadthFirstSearch(currentState)
     #aichess.DepthFirstSearch(currentState, depth)
 

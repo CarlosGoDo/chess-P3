@@ -159,23 +159,34 @@ class Chess():
 
             # alternate player
             self.turn = not self.turn
-            
-            
-            # AI state change - identify change to make in state
-            for m in range(len(self.boardSim.currentStateW)):
+            if target_piece.color: #miramos de que color es la pieza, dependiendo si es W/B tendremos que modificar el
+                #board.currentState pertinente.
 
-                # print("piece to move",self.board.currentStateW[m])
-                aa = self.boardSim.currentStateW[m]               
-                # only the one to move and only for whites so far
-                if self.boardSim.listNames[int(aa[2]-1)] == str(target_piece) and target_piece.color:
-                    if verbose:
-                        print("->piece initial state ",self.boardSim.currentStateW[m])
-                    self.boardSim.currentStateW[m][0] = to[0]
-                    self.boardSim.currentStateW[m][1] = to[1]
-                    if verbose:
-                        print("->piece to state ",self.boardSim.currentStateW[m])
-                                                       
-                   
+                # AI state change - identify change to make in state
+                for m in range(len(self.boardSim.currentStateW)):
+                    # print("piece to move",self.board.currentStateW[m])
+                    aa = self.boardSim.currentStateW[m]
+                    # only the one to move and only for whites so far
+                    if self.boardSim.listNames[int(aa[2] - 1)] == str(target_piece) and target_piece.color:
+                        if verbose:
+                            print("->piece initial state ", self.boardSim.currentStateW[m])
+                        self.boardSim.currentStateW[m][0] = to[0]
+                        self.boardSim.currentStateW[m][1] = to[1]
+                        if verbose:
+                            print("->piece to state ", self.boardSim.currentStateW[m])
+            else:
+                for m in range(len(self.boardSim.currentStateB)):
+                    # print("piece to move",self.board.currentStateW[m])
+                    aa = self.boardSim.currentStateB[m]
+                    # only the one to move and only for whites so far
+                    if self.boardSim.listNames[int(aa[2] - 1)] == str(target_piece):
+                        if verbose:
+                            print("->piece initial state ", self.boardSim.currentStateB[m])
+                        self.boardSim.currentStateB[m][0] = to[0]
+                        self.boardSim.currentStateB[m][1] = to[1]
+                        if verbose:
+                            print("->piece to state ", self.boardSim.currentStateB[m])
+
                #   print("Next States: ",self.board.getListNextStatesW(self.board.currentStateW[m]))
 
 
