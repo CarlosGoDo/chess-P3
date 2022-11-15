@@ -97,9 +97,13 @@ class Aichess():
                 self.chess.boardSim.currentStateB = currentState_not_move
         return  currentState_not_move
 
-    def getCurrentState(self):
+    def getCurrentStateW(self):
 
         return self.myCurrentStateW
+
+    def getCurrentStateB(self):
+
+        return self.myCurrentStateB
 
     def getListNextStatesW(self, myState):
 
