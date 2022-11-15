@@ -176,9 +176,18 @@ class Aichess():
             return True
         return False
 
-    def evaluate(self, currentStateW, currentStateB):
+    def evaluate(self, currentStatePlayer, currentStateRival):
+
+        if currentStatePlayer[0][2] > 6:
+            currentStateB = currentStatePlayer
+            currentStateW = currentStateRival
+        else:
+            currentStateW = currentStatePlayer
+            currentStateB = currentStateRival
+
 
         value = 0
+
         if len(currentStateB) == 2:
             #print("entro en len 2 B ")
             value += (self.rookValueB + self.kingValueB)
@@ -202,6 +211,7 @@ class Aichess():
             elif currentStateB[0][2] == 12:
                 #print("entro en len 1 B K ")
                 value += self.kingValueB
+
         return value
 
     def miniMax(self,currentStatePlayer,currentStateRival,depth, player=True):
