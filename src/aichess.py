@@ -60,6 +60,7 @@ class Aichess():
         to = [e for e in standard_next_state if e not in standard_current_state]
         start, to = start[0][0:2], to[0][0:2]
         aichess.chess.moveSim(start, to)
+
     def nei_corrector(self, nei):
         """
         En esta función observaremos si el nei o estado futuro del tablero al que vamos tiene algún tipo de error
@@ -72,6 +73,7 @@ class Aichess():
         elif len(nei)== 1:
             return True
         return False
+
     def elimina_piece(self, currentState_move, currentState_not_move):
         """
         Args:

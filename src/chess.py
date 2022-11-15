@@ -286,16 +286,6 @@ class Chess():
                                                        
                    
 #                   print("Next States: ",self.board.getListNextStatesW(self.board.currentStateW[m]))
-                   
-                   
-    def getListNextStatesW(self):
-
-        """
-        Gets the list of next possible states given the currentStateW
-        
-        """
-       
-                
 
 
 def translate(s):
