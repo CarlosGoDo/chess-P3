@@ -204,7 +204,7 @@ class Aichess():
                 value += self.kingValueB
         return value
 
-    def miniMax(self,currentStatePlayer,currentStateRival,depth, player):
+    def miniMax(self,currentStatePlayer,currentStateRival,depth, player=True):
         # Your Code here
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
             lista = self.getListnextStatesX(currentStatePlayer)
@@ -222,9 +222,13 @@ class Aichess():
                     chess_temp = copy.deepcopy(self.chess)
                     rival_temp = currentStateRival
                     self.hacer_movimiento(currentStatePlayer, nei)
+                    print("Movimiento hecho")
+                    aichess.chess.boardSim.print_board()
                     currentStateRival = aichess.elimina_piece(nei,currentStateRival)
-                    eval = self.miniMax(currentStateRival,nei,depth-1,False)[0]
+                    eval = self.miniMax(nei,currentStateRival,depth-1,False)[0]
+                    print("Evaluation: ", eval)
                     maxEval = max(maxEval,eval)
+                    print("Max eval: ", eval)
                     if maxEval == eval:
                         best_move = nei
                     self.chess = chess_temp
@@ -240,9 +244,13 @@ class Aichess():
                     temp = copy.deepcopy(self.chess)
                     player_temp = currentStatePlayer
                     self.hacer_movimiento(currentStateRival, nei)
+                    print("Movimiento hecho")
+                    aichess.chess.boardSim.print_board()
                     currentStatePlayer = aichess.elimina_piece(nei, currentStatePlayer)
-                    eval = self.miniMax(currentStatePlayer,nei,depth-1,True)[0]
+                    eval = self.miniMax(nei,currentStatePlayer,depth-1,True)[0]
+                    print("Evaluation: ", eval)
                     minEval = min(minEval, eval)
+                    print("Min eval: ", minEval)
                     if minEval == eval:
                         best_move = nei
                     self.chess = temp
@@ -307,8 +315,6 @@ if __name__ == "__main__":
     currentStateB = aichess.chess.board.currentStateB.copy()
     currentStateW = aichess.chess.board.currentStateW.copy()
 
-
-    print("Evaluation: ",aichess.evaluate(currentStateW,currentStateB))
     print("printing board")
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
@@ -327,7 +333,7 @@ if __name__ == "__main__":
     # find the shortest path, initial depth 0
     depth = 4
     #aichess.chess.boardSim.print_board()
-    aichess.miniMax(currentStateW,currentStateB,depth,True)
+    aichess.miniMax(currentStateW,currentStateB,depth)
     #estados = aichess.getListNextStatesW([[7, 4, 2], [7, 4, 6]])
     """print("antes es : ", currentStateW, currentStateB)
     aux = aichess.miniMax(currentStateW,  currentStateB, depth, True)[1]
