@@ -234,12 +234,14 @@ class Aichess():
 
     def miniMax(self,currentStatePlayer,currentStateRival,depth, player=True):
         # Your Code here
+        print("Entramos a un nuevo minimax")
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
-            #print("siguientes estados estamos en el check: ", lista)
+            print("depth",depth)
             print("current state player a evaluar ",currentStatePlayer)
             print("current state rival a evaluar ",currentStateRival)
+            print("CurrentState W ", self.chess.boardSim.currentStateW)
+            print("CurrentState B ", self.chess.boardSim.currentStateB)
             metrica = self.evaluate(currentStatePlayer, currentStateRival)
-            #print("valor de la jugada: ",metrica)
             return metrica, currentStatePlayer
         if player:
             maxEval = float('-inf')
@@ -248,8 +250,8 @@ class Aichess():
             print("Siguientes posibles estados player: ", lista_player)
             for nei in lista_player:
                 if self.nei_corrector(nei):
+                    print("vecino del estado",currentStatePlayer ,"profundidad",depth)
                     chess_temp = copy.deepcopy(self.chess)
-                    rival_temp = currentStateRival
                     print("Nos movemos de ",currentStatePlayer," a ",nei)
                     self.hacer_movimiento(currentStatePlayer, nei)
                     print("Movimiento hecho")
@@ -258,14 +260,14 @@ class Aichess():
                     print("depth ",depth)
                     print("CurrentState W ", self.chess.boardSim.currentStateW)
                     print("CurrentState B ", self.chess.boardSim.currentStateB)
+                    print("nos vamos al estado: ",nei,currentStateRival)
                     eval = self.miniMax(nei,currentStateRival,depth-1,False)[0]
                     print("Evaluation: ", eval)
                     maxEval = max(maxEval,eval)
                     print("Max eval: ", eval)
                     if maxEval == eval:
                         best_move = nei
-                    #self.chess = chess_temp
-                    currentStateRival = rival_temp
+                    self.chess = chess_temp
             return maxEval, best_move
         else:
             minEval = float('inf')
@@ -274,9 +276,10 @@ class Aichess():
             print("Siguientes posibles estados rival: ", lista_rival)
             for nei in lista_rival:
                 if self.nei_corrector(nei):
+                    print("vecino de",currentStateRival ,"profundidad",depth)
                     temp = copy.deepcopy(self.chess)
                     player_temp = currentStatePlayer
-                    print("Nos movemos de ",currentStateRival," a ",nei)
+                    print("Nos movemos del estado ",currentStateRival," a ",nei)
                     self.hacer_movimiento(currentStateRival, nei)
                     print("Movimiento hecho")
                     aichess.chess.boardSim.print_board()
@@ -290,8 +293,7 @@ class Aichess():
                     print("Min eval: ", minEval)
                     if minEval == eval:
                         best_move = nei
-                    #self.chess = temp
-                    currentStatePlayer = player_temp
+                    self.chess = temp
             return minEval, best_move
 
     def max_value(self, currentState):
@@ -370,7 +372,8 @@ if __name__ == "__main__":
     # find the shortest path, initial depth 0
     depth = 4
     #aichess.chess.boardSim.print_board()
-    aichess.miniMax(currentStateW,currentStateB,depth)
+    aux = aichess.miniMax(currentStateW,currentStateB,depth)
+    print("el siguiente estado ", aux)
     #estados = aichess.getListNextStatesW([[7, 4, 2], [7, 4, 6]])
     """print("antes es : ", currentStateW, currentStateB)
     aux = aichess.miniMax(currentStateW,  currentStateB, depth, True)[1]
