@@ -190,6 +190,7 @@ class Board():
                             self.listSuccessorStates.append([aa[0], aa[1], aa[2]])
 
 
+
             elif (str(self.board[mypiece[0]][mypiece[1]]) == '\033[94m' + 'P' + '\033[0m'):
 
                 #       print(" mypiece at  ",mypiece[0],mypiece[1])
@@ -201,9 +202,8 @@ class Board():
                     if aa[0] > -1 and aa[0] < 8 and aa[1] > -1 and aa[1] < 8 and listPotentialNextStates[
                         k] not in listOtherPieces:
 
-                        if self.board[aa[0]][aa[1]] == None:
+                        if self.board[aa[0]][aa[1]] == None :
                             self.listSuccessorStates.append([aa[0], aa[1], aa[2]])
-
 
             elif (str(self.board[mypiece[0]][mypiece[1]]) == '\033[94m' + 'R' + '\033[0m'):
 
