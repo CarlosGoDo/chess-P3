@@ -42,6 +42,8 @@ class Board():
         """
         self.listNames = ['P', 'R', 'H', 'B', 'Q', 'K', '\033[94m' + 'P' + '\033[0m', '\033[94m' + 'R' + '\033[0m', '\033[94m' + 'H' + '\033[0m','\033[94m' + 'B' + '\033[0m', '\033[94m' + 'Q' + '\033[0m', '\033[94m' + 'K' + '\033[0m']
 
+        self.white = ['P', 'R', 'H', 'B', 'Q', 'K']
+        self.black = ['\033[94m' + 'P' + '\033[0m', '\033[94m' + 'R' + '\033[0m', '\033[94m' + 'H' + '\033[0m','\033[94m' + 'B' + '\033[0m', '\033[94m' + 'Q' + '\033[0m', '\033[94m' + 'K' + '\033[0m']
         self.listSuccessorStates = []
         self.listNextStates = []
 
@@ -170,7 +172,6 @@ class Board():
             listOtherPieces = mypieces.copy()
             listOtherPieces.remove(mypiece)
             listPotentialNextStates = []
-            print(type(str(self.board[mypiece[0]][mypiece[1]])))
             if (str(self.board[mypiece[0]][mypiece[1]]) == '\033[94m' + 'K' + '\033[0m'):
 
                 #      print(" mypiece at  ",mypiece[0],mypiece[1])
@@ -186,7 +187,7 @@ class Board():
                     if aa[0] > -1 and aa[0] < 8 and aa[1] > -1 and aa[1] < 8 and listPotentialNextStates[
                         k] not in listOtherPieces and listPotentialNextStates[k] not in self.currentStateB:
 
-                        if self.board[aa[0]][aa[1]] == None:
+                        if self.board[aa[0]][aa[1]] == None or self.board[aa[0]][aa[1]] in self.white:
                             self.listSuccessorStates.append([aa[0], aa[1], aa[2]])
 
 
@@ -530,7 +531,7 @@ class Board():
                     if aa[0] > -1 and aa[0] < 8 and aa[1] > -1 and aa[1] < 8 and listPotentialNextStates[
                         k] not in listOtherPieces and listPotentialNextStates[k] not in self.currentStateB:
 
-                        if self.board[aa[0]][aa[1]] == None:
+                        if self.board[aa[0]][aa[1]] == None or self.board[aa[0]][aa[1]] in self.black:
                             self.listSuccessorStates.append([aa[0], aa[1], aa[2]])
 
 

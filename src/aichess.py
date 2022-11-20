@@ -291,12 +291,12 @@ if __name__ == "__main__":
     # # black pieces
     # TA[0][4] = 12
 
-    TA[7][0] = 2
-    TA[7][4] = 6
+    TA[0][0] = 2
+    TA[1][4] = 6
 
 
 
-    TA[0][0] = 8
+    #TA[0][0] = 8
     TA[0][4] = 12
     # initialise board
     print("stating AI chess... ")
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     print("current State Black", currentStateB)
     print("current State White", currentStateW)
 
-
+    print("siguientes estados",aichess.getListNextStatesW(currentStateW))
     # it uses board to get them... careful 
 
     #print("list next states ", aichess.listNextStates)
@@ -336,20 +336,26 @@ if __name__ == "__main__":
 
 
 
-
+    """
     i = 1
     check = 1
     while check != 0:
 
         if i%2 !=0:
-            chess_temp = aichess.chess
+            chess_temp = copy.deepcopy(aichess.chess)
             aux = aichess.miniMax(currentStateW, currentStateB, depth, True)[0]
+            currentStateW = aichess.chess.boardSim.currentStateW
+            currentStateB = aichess.chess.boardSim.currentStateB
             print("El estado encontrado ", aux)
             #time.sleep(10)
             if aux != None:
                 aichess.chess = chess_temp
                 aichess.hacer_movimiento(currentStateW, aux)
                 aichess.elimina_piece(aux, currentStateB)
+                #print("Blancas",currentStateW)
+                #print("Nergas", currentStateB)
+                #print("Blancas board sim", aichess.chess.boardSim.currentStateW)
+                print("Negras board sim", aichess.chess.boardSim.currentStateB)
                 currentStateW = aichess.chess.boardSim.currentStateW
                 currentStateB = aichess.chess.boardSim.currentStateB
 
@@ -358,25 +364,32 @@ if __name__ == "__main__":
                 print("soy nulo")
             i += 1
         else:
-            chess_temp = aichess.chess
+            chess_temp = copy.deepcopy(aichess.chess)
             aux = aichess.miniMax(currentStateB, currentStateW, depth, True,False)[0]
+            currentStateW = aichess.chess.boardSim.currentStateW
+            currentStateB = aichess.chess.boardSim.currentStateB
             print("El estado encontrado ", aux)
             #time.sleep(15)
             if aux != None:
                 aichess.chess = chess_temp
                 aichess.hacer_movimiento(currentStateB, aux)
                 aichess.elimina_piece(aux, currentStateW)
+                print("Blancas", currentStateW)
+                print("Nergas", currentStateB)
+                print("Blancas board sim", aichess.chess.boardSim.currentStateW)
+                print("Negras board sim", aichess.chess.boardSim.currentStateB)
                 currentStateW = aichess.chess.boardSim.currentStateW
                 currentStateB = aichess.chess.boardSim.currentStateB
                 #time.sleep(10)
             else:
                 print("soy nulo")
             i += 1
+        aichess.chess.boardSim.print_board()
 
         if aichess.isCheckMate(currentStateW,currentStateB) or i == 1000:
             i = 0
 
-
+    """
 
     #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
     #print("siguientes estados Negras: ", aichess.getListNextStatesW(currentStateB))
