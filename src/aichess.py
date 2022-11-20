@@ -16,6 +16,7 @@ from typing import List
 RawStateType = List[List[List[int]]]
 import time
 from itertools import permutations
+import random
 
 
 
@@ -61,6 +62,7 @@ class Aichess():
         to = [e for e in standard_next_state if e not in standard_current_state]
         start, to = start[0][0:2], to[0][0:2]
         aichess.chess.moveSim(start, to)
+
 
     def nei_corrector(self, nei,estado_actual):
         """
@@ -233,7 +235,7 @@ class Aichess():
                     else:  # si es false ha sido llamado por los negros.
                         currentStatePlayer = self.chess.boardSim.currentStateB
                         currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval >= max_eval:
+                    if current_eval > max_eval:
                         max_eval = current_eval
                         best_move = nei
             return best_move, max_eval
@@ -254,7 +256,7 @@ class Aichess():
                     else:  # si es false ha sido llamado por los negros.
                         currentStatePlayer = self.chess.boardSim.currentStateB
                         currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval <= min_eval:
+                    if current_eval < min_eval:
                         min_eval = current_eval
                         best_move = nei
             return best_move, min_eval
@@ -309,7 +311,6 @@ if __name__ == "__main__":
     TA[7][5] = 6
 
 
-
     TA[0][0] = 8
     TA[0][5] = 12
     # initialise board
@@ -342,7 +343,7 @@ if __name__ == "__main__":
     aichess.chess = ches_temp
     currentStateW = aichess.chess.boardSim.currentStateW
     currentStateB = aichess.chess.boardSim.currentStateB
-    aichess.hacer_movimiento(currentStateW,[[0, 7, 2], [4, 6, 6]])
+    aichess.hacer_movimiento(currentStateW,aux[0])
     aichess.elimina_piece(currentStateW,currentStateB)
     aichess.chess.boardSim.print_board()
     """
@@ -356,9 +357,11 @@ if __name__ == "__main__":
     check = 1
     while check != 0:
 
+
         if i%2 !=0:
             chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.miniMax(currentStateW, currentStateB, depth, True)[0]
+            aux = aichess.miniMax(currentStateW, currentStateB, depth, True,True)[0]
+            print("Turno Blancas")
             currentStateW = aichess.chess.boardSim.currentStateW
             currentStateB = aichess.chess.boardSim.currentStateB
             print("El estado encontrado ", aux)
@@ -379,8 +382,10 @@ if __name__ == "__main__":
                 print("soy nulo")
             i += 1
         else:
+
             chess_temp = copy.deepcopy(aichess.chess)
             aux = aichess.miniMax(currentStateB, currentStateW, depth, True,False)[0]
+            print("Turno negras") 
             currentStateW = aichess.chess.boardSim.currentStateW
             currentStateB = aichess.chess.boardSim.currentStateB
             print("El estado encontrado ", aux)
@@ -403,7 +408,6 @@ if __name__ == "__main__":
 
         if aichess.isCheckMate(currentStateW,currentStateB) or i == 1000:
             check = 0
-
 
 
     #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
