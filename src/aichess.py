@@ -179,6 +179,7 @@ class Aichess():
 
     def isCheckMate(self, currentState_Player, currentState_Rival):
         # Your Code
+
         if len(currentState_Rival) == 0 or len(currentState_Player) == 0:
             return True
         if len(currentState_Rival) == 1  and (currentState_Rival[0][2]== 8 or currentState_Rival[0][2]== 2):
@@ -209,11 +210,11 @@ class Aichess():
 
         if color:
             return value
-        else:# sila funcion
+        else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
 
 
-    def miniMax(self,currentStatePlayer,currentStateRival,depth, player=True,color= True):
+    def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
 
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
             return None, self.evaluate(currentStatePlayer, currentStateRival,color)
@@ -235,7 +236,7 @@ class Aichess():
                     else:  # si es false ha sido llamado por los negros.
                         currentStatePlayer = self.chess.boardSim.currentStateB
                         currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval > max_eval:
+                    if current_eval >= max_eval:
                         max_eval = current_eval
                         best_move = nei
             return best_move, max_eval
@@ -256,12 +257,64 @@ class Aichess():
                     else:  # si es false ha sido llamado por los negros.
                         currentStatePlayer = self.chess.boardSim.currentStateB
                         currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval < min_eval:
+                    if current_eval <= min_eval:
                         min_eval = current_eval
                         best_move = nei
             return best_move, min_eval
 
+    def miniMax_ALphaBeta(self,currentStatePlayer,currentStateRival,depth,alpha,beta, player=True,color= True):
 
+        if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
+            return None, self.evaluate(currentStatePlayer, currentStateRival,color)
+
+        best_move = None
+        if player:
+            max_eval = -9999999
+            lista_player = self.getListnextStatesX(currentStatePlayer)
+            for nei in lista_player:
+                if self.nei_corrector(nei, currentStatePlayer):
+                    chess_temp = copy.deepcopy(self.chess)
+                    self.hacer_movimiento(currentStatePlayer, nei)
+                    self.elimina_piece(nei, currentStateRival)
+                    current_eval = self.miniMax_ALphaBeta(currentStatePlayer, currentStateRival, depth - 1,depth,alpha, False, color)[1]
+                    self.chess = chess_temp
+                    if color:  # si color es true, minimax ha sido llamado por los blancos.
+                        currentStatePlayer = self.chess.boardSim.currentStateW
+                        currentStateRival = self.chess.boardSim.currentStateB
+                    else:  # si es false ha sido llamado por los negros.
+                        currentStatePlayer = self.chess.boardSim.currentStateB
+                        currentStateRival = self.chess.boardSim.currentStateW
+                    if current_eval >= max_eval:
+                        max_eval = current_eval
+                        best_move = nei
+                    alpha = max(alpha, current_eval)
+                    if beta <= alpha:
+                        break
+            return best_move, max_eval
+
+        else:
+            min_eval = 9999999
+            lista_rival = self.getListnextStatesX(currentStateRival)
+            for nei in lista_rival:
+                if self.nei_corrector(nei, currentStateRival):
+                    chess_temp = copy.deepcopy(self.chess)
+                    self.hacer_movimiento(currentStateRival, nei)
+                    self.elimina_piece(nei, currentStatePlayer)
+                    current_eval = self.miniMax_ALphaBeta(currentStatePlayer, currentStateRival, depth - 1,alpha,beta, True, color)[1]
+                    self.chess = chess_temp
+                    if color:  # si color es true minimax ha sido llamado por los blancos.
+                        currentStatePlayer = self.chess.boardSim.currentStateW
+                        currentStateRival = self.chess.boardSim.currentStateB
+                    else:  # si es false ha sido llamado por los negros.
+                        currentStatePlayer = self.chess.boardSim.currentStateB
+                        currentStateRival = self.chess.boardSim.currentStateW
+                    if current_eval <= min_eval:
+                        min_eval = current_eval
+                        best_move = nei
+                    beta = min(beta, current_eval)
+                    if beta <= alpha:
+                        break
+            return best_move, min_eval
     def max_value(self, currentState):
         # Your Code here
 
@@ -336,6 +389,7 @@ if __name__ == "__main__":
     # aichess.chess.boardSim.listVisitedStates = []
     # find the shortest path, initial depth 0
     depth = 4
+
     """
     ches_temp = copy.deepcopy(aichess.chess)
     aux = aichess.miniMax( currentStateW,currentStateB,depth)
@@ -350,9 +404,62 @@ if __name__ == "__main__":
     #aux2 = aichess.miniMax_B(currentStateB,currentStateW,depth)
     #print("el siguiente estado ", aux2)
 
+    i = 1
+    check = 1
+    while check != 0:
 
+        if i % 2 != 0:
+            chess_temp = copy.deepcopy(aichess.chess)
+            aux = aichess.miniMax_ALphaBeta(currentStateW, currentStateB,depth,-99999,99999,True,True)[0]
+            print("Turno Blancas")
+            currentStateW = aichess.chess.boardSim.currentStateW
+            currentStateB = aichess.chess.boardSim.currentStateB
+            print("El estado encontrado ", aux)
+            # time.sleep(10)
+            if aux != None:
+                aichess.chess = chess_temp
+                aichess.hacer_movimiento(currentStateW, aux)
+                aichess.elimina_piece(aux, currentStateB)
+                # print("Blancas",currentStateW)
+                # print("Nergas", currentStateB)
+                # print("Blancas board sim", aichess.chess.boardSim.currentStateW)
+                print("Negras board sim", aichess.chess.boardSim.currentStateB)
+                currentStateW = aichess.chess.boardSim.currentStateW
+                currentStateB = aichess.chess.boardSim.currentStateB
 
+                # time.sleep(10)
+            else:
+                print("soy nulo")
+            i += 1
+        else:
 
+            chess_temp = copy.deepcopy(aichess.chess)
+            aux = aichess.miniMax_ALphaBeta(currentStateB, currentStateW, depth,-99999, 99999, True, False)[0]
+            print("Turno negras")
+            currentStateW = aichess.chess.boardSim.currentStateW
+            currentStateB = aichess.chess.boardSim.currentStateB
+            print("El estado encontrado ", aux)
+            # time.sleep(15)
+            if aux != None:
+                aichess.chess = chess_temp
+                aichess.hacer_movimiento(currentStateB, aux)
+                aichess.elimina_piece(aux, currentStateW)
+                print("Blancas", currentStateW)
+                print("Nergas", currentStateB)
+                print("Blancas board sim", aichess.chess.boardSim.currentStateW)
+                print("Negras board sim", aichess.chess.boardSim.currentStateB)
+                currentStateW = aichess.chess.boardSim.currentStateW
+                currentStateB = aichess.chess.boardSim.currentStateB
+                # time.sleep(10)
+            else:
+                print("soy nulo")
+            i += 1
+        aichess.chess.boardSim.print_board()
+
+        if aichess.isCheckMate(currentStateW, currentStateB) or i == 1000:
+            check = 0
+
+    """
     i = 1
     check = 1
     while check != 0:
@@ -408,7 +515,7 @@ if __name__ == "__main__":
 
         if aichess.isCheckMate(currentStateW,currentStateB) or i == 1000:
             check = 0
-
+    """
 
     #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
     #print("siguientes estados Negras: ", aichess.getListNextStatesW(currentStateB))
