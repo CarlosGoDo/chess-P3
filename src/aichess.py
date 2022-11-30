@@ -176,17 +176,51 @@ class Aichess():
         else:
             return False
 
+    """def isCheckMate(self, currentState_Player, currentState_Rival):
+            # Your Code
 
-    def isCheckMate(self, currentState_Player, currentState_Rival):
-        # Your Code
+            if len(currentState_Rival) == 0 or len(currentState_Player) == 0:
+                return True
+            if len(currentState_Rival) == 1  and (currentState_Rival[0][2]== 8 or currentState_Rival[0][2]== 2):
+                return True
+            if len(currentState_Player) == 1 and (currentState_Player[0][2]== 2 or currentState_Player[0][2]== 8):
+                return True
+            return False"""
 
-        if len(currentState_Rival) == 0 or len(currentState_Player) == 0:
+    def isCheckMate(self, mystate):
+
+        # Llista de possibles checkmates
+        listCheckMateStates = [[[0, 0, 2], [2, 4, 6]], [[0, 1, 2], [2, 4, 6]], [[0, 2, 2], [2, 4, 6]],
+                               [[0, 6, 2], [2, 4, 6]], [[0, 7, 2], [2, 4, 6]]]
+
+        # Mirem si el nostre estat està a la llista
+        if mystate in listCheckMateStates:
+            print("is check Mate!")
             return True
-        if len(currentState_Rival) == 1  and (currentState_Rival[0][2]== 8 or currentState_Rival[0][2]== 2):
-            return True
-        if len(currentState_Player) == 1 and (currentState_Player[0][2]== 2 or currentState_Player[0][2]== 8):
-            return True
+
         return False
+
+    def func_heuristic(self, estado1, estado2):
+        """
+        Calculem la distància de manhattan entre els dos estats passats per paràmetre
+        """
+        nei1 = copy.copy(estado1)
+        nei2 = copy.copy(estado2)
+
+        if nei1[0][2] == 6:
+            aux = nei1[0]
+            nei1[0] = nei1[1]
+            nei1[1] = aux
+
+        if nei2[0][2] == 6:
+            aux = nei2[0]
+            nei2[0] = nei2[1]
+            nei2[1] = aux
+
+        dist1 = abs((nei2[0][0] - nei1[0][0])) + abs((nei2[0][1] - nei1[0][1]))
+        dist2 = abs((nei2[1][0] - nei1[1][0])) + abs((nei2[1][1] - nei1[1][1]))
+
+        return dist1 + dist2
 
     def evaluate(self, currentStatePlayer, currentStateRival, color):
         """
