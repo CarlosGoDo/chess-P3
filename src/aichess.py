@@ -56,6 +56,7 @@ class Aichess():
         self.kingValueW = 900;
         self.rookValueB = -50;
         self.kingValueB = -900;
+        self.qTable = np.zeros([64,22])
 
     def hacer_movimiento(self, standard_current_state, standard_next_state):
         start = [e for e in standard_current_state if e not in standard_next_state]
@@ -247,6 +248,11 @@ class Aichess():
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
 
+    def qLearning(self, currentState, movement):
+        return 0
+
+    def epsilonGreedy(self, currentState, movement):
+        return 0
 
     def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
 
@@ -476,9 +482,8 @@ if __name__ == "__main__":
     # # black pieces
     # TA[0][4] = 12
 
-    TA[7][0] = 2
-    TA[7][5] = 6
-
+    TA[6][7] = 2
+    TA[4][4] = 6
 
     TA[0][0] = 8
     TA[0][5] = 12
@@ -497,231 +502,13 @@ if __name__ == "__main__":
     print("current State White", currentStateW)
 
     print("siguientes estados",aichess.getListNextStatesW(currentStateW))
-    # it uses board to get them... careful 
-
-    #print("list next states ", aichess.listNextStates)
-
-    # starting from current state find the end state (check mate) - recursive function
-    # aichess.chess.boardSim.listVisitedStates = []
-    # find the shortest path, initial depth 0
-    depth = 4
-    """
-    ches_temp = copy.deepcopy(aichess.chess)
-    aux = aichess.expectimax(currentStateW, currentStateB, depth)
-    print("siguiente estado ", aux)
-    aichess.chess = ches_temp
-    currentStateW = aichess.chess.boardSim.currentStateW
-    currentStateB = aichess.chess.boardSim.currentStateB
-    aichess.hacer_movimiento(currentStateW, aux[0])
-    aichess.elimina_piece(currentStateW, currentStateB)
-    aichess.chess.boardSim.print_board()
-    """
-    """
-    ches_temp = copy.deepcopy(aichess.chess)
-    aux = aichess.miniMax( currentStateW,currentStateB,depth)
-    print("siguiente estado ", aux)
-    aichess.chess = ches_temp
-    currentStateW = aichess.chess.boardSim.currentStateW
-    currentStateB = aichess.chess.boardSim.currentStateB
-    aichess.hacer_movimiento(currentStateW,aux[0])
-    aichess.elimina_piece(currentStateW,currentStateB)
-    aichess.chess.boardSim.print_board()
-    """
-    #aux2 = aichess.miniMax_B(currentStateB,currentStateW,depth)
-    #print("el siguiente estado ", aux2)
-
-    ################################### MiniMax Apla-Beta ###################################
-    """
-    i = 1
-    check = 1
-    while check != 0:
-
-        if i % 2 != 0:
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.miniMax_ALphaBeta(currentStateW, currentStateB,depth,-99999,99999,True,True)[0]
-            print("Turno Blancas")
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            # time.sleep(10)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateW, aux)
-                aichess.elimina_piece(aux, currentStateB)
-                # print("Blancas",currentStateW)
-                # print("Nergas", currentStateB)
-                # print("Blancas board sim", aichess.chess.boardSim.currentStateW)
-                print("Negras board sim", aichess.chess.boardSim.currentStateB)
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-
-                # time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        else:
-
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.miniMax_ALphaBeta(currentStateB, currentStateW, depth,-99999, 99999, True, False)[0]
-            print("Turno negras")
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            # time.sleep(15)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateB, aux)
-                aichess.elimina_piece(aux, currentStateW)
-                print("Blancas", currentStateW)
-                print("Nergas", currentStateB)
-                print("Blancas board sim", aichess.chess.boardSim.currentStateW)
-                print("Negras board sim", aichess.chess.boardSim.currentStateB)
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-                # time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        aichess.chess.boardSim.print_board()
-
-        if aichess.isCheckMate(currentStateW, currentStateB) or i == 1000:
-            check = 0
-    """
-
-    ################################### MiniMax ###################################
-    """
-    i = 1
-    check = 1
-    while check != 0:
+    print(len(aichess.getListNextStatesW(currentStateW)))
+    # it uses board to get them... careful
 
 
-        if i%2 !=0:
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.miniMax(currentStateW, currentStateB, depth, True,True)[0]
-            print("Turno Blancas")
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            #time.sleep(10)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateW, aux)
-                aichess.elimina_piece(aux, currentStateB)
-                #print("Blancas",currentStateW)
-                #print("Nergas", currentStateB)
-                #print("Blancas board sim", aichess.chess.boardSim.currentStateW)
-                print("Negras board sim", aichess.chess.boardSim.currentStateB)
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-
-                #time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        else:
-
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.miniMax(currentStateB, currentStateW, depth, True,False)[0]
-            print("Turno negras") 
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            #time.sleep(15)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateB, aux)
-                aichess.elimina_piece(aux, currentStateW)
-
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-                #time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        aichess.chess.boardSim.print_board()
-
-        if aichess.isCheckMate(currentStateW,currentStateB) or i == 1000:
-            check = 0
-    """
-    ################################### ExpectiMax ###################################
-
-    i = 1
-    check = 1
-    while check != 0:
-
-        if i % 2 != 0:
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.expectimax(currentStateW, currentStateB, depth, True, True)[0]
-            print("Turno Blancas")
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            # time.sleep(10)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateW, aux)
-                aichess.elimina_piece(aux, currentStateB)
-                print("Blancas board sim", aichess.chess.boardSim.currentStateW)
-                print("Negras board sim", aichess.chess.boardSim.currentStateB)
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-
-                # time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        else:
-
-            chess_temp = copy.deepcopy(aichess.chess)
-            aux = aichess.expectimax(currentStateB, currentStateW, depth, True, False)[0]
-            print("Turno negras")
-            currentStateW = aichess.chess.boardSim.currentStateW
-            currentStateB = aichess.chess.boardSim.currentStateB
-            print("El estado encontrado ", aux)
-            # time.sleep(15)
-            if aux != None:
-                aichess.chess = chess_temp
-                aichess.hacer_movimiento(currentStateB, aux)
-                aichess.elimina_piece(aux, currentStateW)
-                print("Blancas board sim", aichess.chess.boardSim.currentStateW)
-                print("Negras board sim", aichess.chess.boardSim.currentStateB)
-                currentStateW = aichess.chess.boardSim.currentStateW
-                currentStateB = aichess.chess.boardSim.currentStateB
-                # time.sleep(10)
-            else:
-                print("soy nulo")
-            i += 1
-        aichess.chess.boardSim.print_board()
-
-        if aichess.isCheckMate(currentStateW, currentStateB) or i == 1000:
-            check = 0
-
-    #print("siguientes estados Blancas: ", aichess.getListNextStatesW(currentStateW))
-    #print("siguientes estados Negras: ", aichess.getListNextStatesW(currentStateB))
-
-    #aichess.BreadthFirstSearch(currentState)
-    #aichess.DepthFirstSearch(currentState, depth)
-
-    # MovesToMake = ['1e','2e','2e','3e','3e','4d','4d','3c']
-
-    # for k in range(int(len(MovesToMake)/2)):
-
-    #     print("k: ",k)
-
-    #     print("start: ",MovesToMake[2*k])
-    #     print("to: ",MovesToMake[2*k+1])
-
-    #     start = translate(MovesToMake[2*k])
-    #     to = translate(MovesToMake[2*k+1])
-
-    #     print("start: ",start)
-    #     print("to: ",to)
-
-    #     aichess.chess.moveSim(start, to)
-    """
     aichess.chess.boardSim.print_board()
     print("#Move sequence...  ", aichess.pathToTarget)
     print("#Visited sequence...  ", aichess.listVisitedStates)
     print("#Current State White...  ", aichess.chess.board.currentStateW)
     print("#Current State Black...  ", aichess.chess.board.currentStateB)
-    """
+
