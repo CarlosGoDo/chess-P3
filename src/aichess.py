@@ -56,7 +56,7 @@ class Aichess():
         self.kingValueW = 900;
         self.rookValueB = -50;
         self.kingValueB = -900;
-        self.qTable = np.zeros([64,22])
+        self.qTable = np.zeros([8,8,22])
 
     def hacer_movimiento(self, standard_current_state, standard_next_state):
         start = [e for e in standard_current_state if e not in standard_next_state]
@@ -248,17 +248,29 @@ class Aichess():
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
 
-    def qLearning(self, currentState, movement):
+    def qLearning(self,q_values, currentState, movement):
+
+        self.qTable =
         return 0
 
     def epsilonGreedy(self, listNextStates, movement,epsilon):
+        """
 
+        Args:
+            listNextStates:
+            movement:
+            epsilon: Porcentaje de probabilidades de escoger el mejor resultado de q-learn o un movimiento random.
+
+        Returns:Devuelve la siguiente posicion a la que se dirige el bot.
+
+        """
         if np.random() < epsilon:
-            return 0
+            return np.argmax(self.qTable[current_row_index,current_column_index])
         else:
             return random.choice(listNextStates)
 
-
+    def exploring(self):
+        return 0
     def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
 
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
