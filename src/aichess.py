@@ -251,8 +251,13 @@ class Aichess():
     def qLearning(self, currentState, movement):
         return 0
 
-    def epsilonGreedy(self, currentState, movement):
-        return 0
+    def epsilonGreedy(self, listNextStates, movement,epsilon):
+
+        if np.random() < epsilon:
+            return 0
+        else:
+            return random.choice(listNextStates)
+
 
     def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
 
