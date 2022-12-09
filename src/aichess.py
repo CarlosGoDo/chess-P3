@@ -247,10 +247,39 @@ class Aichess():
             return value
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
+    def crear_posicion(self,currentState,qlearn,list_moves):
+        """
 
-    def qLearning(self,q_values, currentState, movement):
+        Args:
+            currentState:Estado pasado para la creación.
+            qlearn:qlearn con los pesos de los movimientos.
 
-        self.qTable =
+        Returns: Buscamos crear un diccionario para el qlearn donde cada estado tendra, un diccionario de los estados
+        futuros a los cuales puede llegar con su puntuación, el reward del propio estado, y la key, que sera el mismo
+        CurrentState.
+
+        """
+        sta = str(currentState)
+        qlearn[sta] = dict()
+        qlearn[sta]['reward'] = 0
+        qlearn[sta]['bestMove'] = None
+        qlearn[sta]['moves'] = dict()
+        for move in list_moves:
+            if qlearn[sta]['moves'].get(str(move)) == None:  # si la key de move no existe qlearn[sta]['moves'][str(move)] = 0
+                qlearn[sta]['moves'][str(move)] = 0
+
+        return qlearn[sta]
+
+    def qLearning(self,currentState, num_episodes, discount_factor = 1.0,
+                                              epsilon = 0.1, alpha = 0.6):
+
+        qlearn = {}
+        lista = self.getListnextStatesX(currentState)
+        # creamos la primera posición de nuestro Qlearn.
+        qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn)
+
+
+
         return 0
 
     def epsilonGreedy(self, listNextStates, movement,epsilon):
