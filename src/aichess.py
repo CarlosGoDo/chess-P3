@@ -247,6 +247,23 @@ class Aichess():
             return value
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
+
+    def conversor(self,state):
+        """
+
+        Args:
+            state: Estado del tablero en forma de string
+
+        Returns:Función auxiliar que transforma un estado del tablero de tipo str a lista de listas.
+
+        """
+        mod = state.translate({ord('['): None})
+        mod = mod.translate({ord(']'): None})
+        mod = mod.split(",")
+        mod = [eval(i) for i in mod] #transformamos la list de str a  int.
+        chunks = [mod[x:x + 3] for x in range(0, len(mod), 3)]
+        return chunks
+
     def crear_posicion(self,currentState,qlearn,list_moves):
         """
 
@@ -276,25 +293,36 @@ class Aichess():
         qlearn = {}
         lista = self.getListnextStatesX(currentState)
         # creamos la primera posición de nuestro Qlearn.
-        qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn)
+        qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn,lista)
+        for iteration in range(num_episodes):
+            list_NextStates = self.getListnextStatesX(currentState)
+            next_move = self.epsilonGreedy(list_NextStates,qlearn)
+            chess_temp = copy.deepcopy(aichess.chess)
+            self.hacer_movimiento(currentState, next_move)
+            self.elimina_piece(next_move, self.chess.boardSim.currentStateB)
+            currentState = self.chess.boardSim.currentStateW
+
 
 
 
         return 0
 
-    def epsilonGreedy(self, listNextStates, movement,epsilon):
+    def epsilonGreedy(self,sta ,listNextStates, qlearn,epsilon = 0.9):
         """
 
         Args:
+            sta: Current state del tablero.
             listNextStates:
-            movement:
             epsilon: Porcentaje de probabilidades de escoger el mejor resultado de q-learn o un movimiento random.
 
-        Returns:Devuelve la siguiente posicion a la que se dirige el bot.
-
+        Returns:Devuelve la siguiente posicion a la que se dirige el bot. 90% de prob que sea el mejor movimiento
+        posible, 10% que sea un movimiento random.
         """
         if np.random() < epsilon:
-            return np.argmax(self.qTable[current_row_index,current_column_index])
+
+            best_state_str = max(qlearn[str(sta)]['moves'], key=qlearn[str(sta)]['moves'].get)
+            best_state = self.conversor(best_state_str)#transformamos el indice del mejor mov de str a lista de listas
+            return best_state
         else:
             return random.choice(listNextStates)
 
