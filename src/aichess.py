@@ -17,7 +17,7 @@ RawStateType = List[List[List[int]]]
 import time
 from itertools import permutations
 import random
-
+import itertools
 
 
 class Aichess():
@@ -188,17 +188,31 @@ class Aichess():
                 return True
             return False"""
 
-    def isCheckMate(self, mystate):
+    def isCheckMate_1(self, mystate):
 
         # Llista de possibles checkmates
         listCheckMateStates = [[[0, 0, 2], [2, 4, 6]], [[0, 1, 2], [2, 4, 6]], [[0, 2, 2], [2, 4, 6]],
-                               [[0, 6, 2], [2, 4, 6]], [[0, 7, 2], [2, 4, 6]]]
+                               [[0, 6, 2], [2, 4, 6]], [[0, 7, 2], [2, 4, 6]],
+                               [[2, 4, 6],[0, 0, 2]], [[2, 4, 6],[0, 1, 2]], [[2, 4, 6],[0, 2, 2]],
+                               [[2, 4, 6],[0, 6, 2]], [[2, 4, 6],[0, 7, 2]]]
 
         # Mirem si el nostre estat està a la llista
         if mystate in listCheckMateStates:
             print("is check Mate!")
             return True
 
+        return False
+
+
+    def isCheckMate_2(self, currentState_Player, currentState_Rival):
+        # Your Code
+
+        if len(currentState_Rival) == 0 or len(currentState_Player) == 0:
+            return True
+        if len(currentState_Rival) == 1  and (currentState_Rival[0][2]== 8 or currentState_Rival[0][2]== 2):
+            return True
+        if len(currentState_Player) == 1 and (currentState_Player[0][2]== 2 or currentState_Player[0][2]== 8):
+            return True
         return False
 
     def func_heuristic(self, estado1, estado2):
@@ -247,6 +261,14 @@ class Aichess():
             return value
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
+    def reward(self,currentState):
+
+        if self.isCheckMate_1(currentState):
+            return 100
+
+        return -1
+
+
 
     def conversor(self,state):
         """
@@ -278,7 +300,7 @@ class Aichess():
         """
         sta = str(currentState)
         qlearn[sta] = dict()
-        qlearn[sta]['reward'] = 0
+        qlearn[sta]['value'] = 0
         qlearn[sta]['bestMove'] = None
         qlearn[sta]['moves'] = dict()
         for move in list_moves:
@@ -295,12 +317,25 @@ class Aichess():
         # creamos la primera posición de nuestro Qlearn.
         qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn,lista)
         for iteration in range(num_episodes):
-            list_NextStates = self.getListnextStatesX(currentState)
-            next_move = self.epsilonGreedy(list_NextStates,qlearn)
-            chess_temp = copy.deepcopy(aichess.chess)
-            self.hacer_movimiento(currentState, next_move)
-            self.elimina_piece(next_move, self.chess.boardSim.currentStateB)
-            currentState = self.chess.boardSim.currentStateW
+            state = currentState
+            for t in itertools.count():
+                list_NextStates = self.getListnextStatesX(state)
+                next_state = self.epsilonGreedy(list_NextStates,qlearn)
+                #hacemos el movimiento
+                chess_temp = copy.deepcopy(aichess.chess)
+                self.hacer_movimiento(state, next_state)
+                self.elimina_piece(next_state, self.chess.boardSim.currentStateB)
+
+                #si el siguiente estado es nuevo en el qlearn
+                if qlearn[str(next_state)].get(str(move)) == None:
+                    lista = self.getListnextStatesX(currentState)
+                    qlearn[str(next_state)] = self.crear_posicion(next_state,qlearn,lista)
+
+                reward = self.reward(next_state)
+                best_next_action = max(qlearn[str(next_state)]['moves'], key=qlearn[str(next_state)]['moves'].get)
+                td_target = reward + discount_factor*(qlear[str(next_state)]['value']) - qlear[str(state)]['value']
+
+
 
 
 
