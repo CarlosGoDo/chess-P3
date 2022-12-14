@@ -18,6 +18,7 @@ import time
 from itertools import permutations
 import random
 import itertools
+from random import *
 
 
 class Aichess():
@@ -263,7 +264,7 @@ class Aichess():
             return -value
     def reward(self,currentState):
 
-        if self.isCheckMate_1(currentState):
+        if self.isCheckMate_2(currentState,self.chess.boardSim.currentStateB):
             return 100
 
         return -1
@@ -316,31 +317,48 @@ class Aichess():
         lista = self.getListnextStatesX(currentState)
         # creamos la primera posición de nuestro Qlearn.
         qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn,lista)
+        chess_temp = copy.deepcopy(self.chess)
+        currentState_temp = currentState
         for iteration in range(num_episodes):
-            state = currentState
+            print("######################################Empieza otra partida#################################")
+            state = currentState_temp
+
+            print("Estado de las blancas: ", self.chess.boardSim.currentStateW)
+            print("Estado de las negras: ", self.chess.boardSim.currentStateB)
             for t in itertools.count():
-                list_NextStates = self.getListnextStatesX(state)
-                next_state = self.epsilonGreedy(list_NextStates,qlearn)
+                list_NextStates = self.getListNextStatesW(state)
+                if len(list_NextStates) == 0:
+                    print("no hay estado sucesores")
+                next_state = self.epsilonGreedy(state,list_NextStates,qlearn)
+
                 #hacemos el movimiento
-                chess_temp = copy.deepcopy(aichess.chess)
                 self.hacer_movimiento(state, next_state)
                 self.elimina_piece(next_state, self.chess.boardSim.currentStateB)
+                self.chess.boardSim.print_board()
 
                 #si el siguiente estado es nuevo en el qlearn
-                if qlearn[str(next_state)].get(str(move)) == None:
-                    lista = self.getListnextStatesX(currentState)
+                if qlearn.get(str(next_state)) == None:
+                    lista = self.getListNextStatesW(next_state)
                     qlearn[str(next_state)] = self.crear_posicion(next_state,qlearn,lista)
 
+
                 reward = self.reward(next_state)
+                qlearn[str(state)]['moves'][str(next_state)] = qlearn[str(next_state)]['value']
                 best_next_action = max(qlearn[str(next_state)]['moves'], key=qlearn[str(next_state)]['moves'].get)
-                td_target = reward + discount_factor*(qlear[str(next_state)]['value']) - qlear[str(state)]['value']
+                td_target = reward + discount_factor*(qlearn[str(next_state)]['value']) - qlearn[str(state)]['value']
+                qlearn[str(state)]['value'] = alpha*td_target
+                if self.isCheckMate_2(next_state,self.chess.boardSim.currentStateB):
+                    print("Check Mate")
+                    break
+                state = next_state
 
 
+            self.chess = chess_temp
+            self.chess.boardSim.currentStateW = [[7, 0, 2], [7, 4, 6]]
+            self.chess.boardSim.currentStateB = [[0, 4, 12]]
 
 
-
-
-        return 0
+        return qlearn
 
     def epsilonGreedy(self,sta ,listNextStates, qlearn,epsilon = 0.9):
         """
@@ -353,16 +371,17 @@ class Aichess():
         Returns:Devuelve la siguiente posicion a la que se dirige el bot. 90% de prob que sea el mejor movimiento
         posible, 10% que sea un movimiento random.
         """
-        if np.random() < epsilon:
+        if np.random.rand() < epsilon:
 
             best_state_str = max(qlearn[str(sta)]['moves'], key=qlearn[str(sta)]['moves'].get)
             best_state = self.conversor(best_state_str)#transformamos el indice del mejor mov de str a lista de listas
             return best_state
         else:
-            return random.choice(listNextStates)
+            x = np.random.randint(0, len(listNextStates))  # Pick a random number between 1 and 100.
+            if len(listNextStates) == 0:
+                print("no hay estado sucesores")
+            return listNextStates[x]
 
-    def exploring(self):
-        return 0
     def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
 
         if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
@@ -591,11 +610,11 @@ if __name__ == "__main__":
     # # black pieces
     # TA[0][4] = 12
 
-    TA[6][7] = 2
-    TA[4][4] = 6
+    TA[7][0] = 2
+    TA[7][4] = 6
 
-    TA[0][0] = 8
-    TA[0][5] = 12
+    #TA[0][0] = 8
+    TA[0][4] = 12
     # initialise board
     print("stating AI chess... ")
     aichess = Aichess(TA, True)
@@ -605,6 +624,8 @@ if __name__ == "__main__":
     print("printing board")
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
+
+    aichess.qLearning(currentStateW,10)
 
     # get list of next states for current state
     print("current State Black", currentStateB)
