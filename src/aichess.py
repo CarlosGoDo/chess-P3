@@ -271,7 +271,7 @@ class Aichess():
 
 
 
-    def conversor(self,state):
+    def normalize_str_to_list(self, state):
         """
 
         Args:
@@ -331,7 +331,7 @@ class Aichess():
         return lista
 
     def qLearning(self,currentState, num_episodes, discount_factor = 1.0,
-                                              epsilon = 0.1, alpha = 0.6):
+                                              epsilon = 0.9, alpha = 0.6):
 
         qlearn = {}
         lista = self.getListnextStatesX(currentState)
@@ -354,16 +354,20 @@ class Aichess():
                 if len(list_NextStates) == 0:
                     print("no hay estado sucesores")
 
-                next_state = self.epsilonGreedy(state,list_NextStates,qlearn)
+                next_state = self.epsilonGreedy(state,list_NextStates,qlearn,epsilon)
                 self.chess.boardSim.print_board()
                 print("nos movemos de ",state," ===> ", next_state)
-                if state == next_state:
-                    print("Atencion tenemos un next_state = state")
-                    print(list_NextStates)
+
+                previus = copy.copy(state)
+                print("Estado state: ", state)
+                print("previus: ", previus)
+
                 #hacemos el movimiento
+                print("hacemos el movimiento")
                 self.hacer_movimiento(state, next_state)
                 self.elimina_piece(next_state, self.chess.boardSim.currentStateB)
-
+                print("previus: ", previus)
+                state = previus.copy()
                 print("Estado state: ", state)
                 print("Estado next_state: ", next_state)
 
@@ -374,6 +378,8 @@ class Aichess():
                     qlearn[str(next_state)] = self.crear_posicion(next_state,qlearn,lista)
 
                 reward = self.reward(next_state)
+                if state == next_state:
+                    print("pasa algo")
                 qlearn[str(state)]['moves'][str(next_state)] = qlearn[str(next_state)]['value']
                 best_next_action = max(qlearn[str(next_state)]['moves'], key=qlearn[str(next_state)]['moves'].get)
                 td_target = reward + discount_factor*(qlearn[str(next_state)]['value']) - qlearn[str(state)]['value']
@@ -382,7 +388,7 @@ class Aichess():
                     print("Check Mate")
                     self.chess.boardSim.print_board()
                     break
-                state = next_state
+                state = next_state.copy()
 
             self.chess = copy.deepcopy(chess_temp)
 
@@ -399,9 +405,12 @@ class Aichess():
         Returns:Devuelve la siguiente posicion a la que se dirige el bot. 90% de prob que sea el mejor movimiento
         posible, 10% que sea un movimiento random.
         """
+        if qlearn[str(sta)]['moves'].get(str(sta)) != None:
+            del qlearn[str(sta)]['moves'][str(sta)]
         if np.random.rand() < epsilon:
             best_state_str = max(qlearn[str(sta)]['moves'], key=qlearn[str(sta)]['moves'].get)
-            best_state = self.conversor(best_state_str)#transformamos el indice del mejor mov de str a lista de listas
+            print("Del estado ",sta," ",qlearn[str(sta)]['moves'])
+            best_state = self.normalize_str_to_list(best_state_str)#normalizar el indice del mejor mov de str a lista de listas
             return best_state
         else:
             print()
@@ -458,7 +467,7 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    aichess.qLearning(currentStateW,100)
+    aux = aichess.qLearning(currentStateW,100)
 
     # get list of next states for current state
     print("current State Black", currentStateB)
@@ -474,4 +483,5 @@ if __name__ == "__main__":
     print("#Visited sequence...  ", aichess.listVisitedStates)
     print("#Current State White...  ", aichess.chess.board.currentStateW)
     print("#Current State Black...  ", aichess.chess.board.currentStateB)
+
 
