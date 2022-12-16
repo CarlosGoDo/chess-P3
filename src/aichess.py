@@ -310,37 +310,68 @@ class Aichess():
 
         return qlearn[sta]
 
+    def normalize_nei(self, nei):
+
+        if len(nei) > 1 and nei[0][2] > nei[1][2]:
+            aux = nei[0]
+            nei[0] = nei[1]
+            nei[1] = aux
+        return nei
+
+    def normalize_list(self, lista, estado_actual):
+        i = 0
+        for nei in lista:
+            if not self.nei_corrector(nei, estado_actual):
+                lista.remove(nei)
+
+            else:
+                nei = self.normalize_nei(nei)
+                lista[i] = nei
+            i += 1
+        return lista
+
     def qLearning(self,currentState, num_episodes, discount_factor = 1.0,
                                               epsilon = 0.1, alpha = 0.6):
 
         qlearn = {}
         lista = self.getListnextStatesX(currentState)
+        lista = self.normalize_list(lista,currentState)
         # creamos la primera posición de nuestro Qlearn.
         qlearn[str(currentState)] = self.crear_posicion(currentState,qlearn,lista)
-        chess_temp = copy.deepcopy(self.chess)
-        currentState_temp = currentState
         for iteration in range(num_episodes):
-            print("######################################Empieza otra partida#################################")
-            state = currentState_temp
+            print("######################################Empieza otra partida", iteration,"#################################")
+
+            state = self.chess.boardSim.currentStateW.copy()
+            chess_temp = copy.deepcopy(self.chess)
 
             print("Estado de las blancas: ", self.chess.boardSim.currentStateW)
             print("Estado de las negras: ", self.chess.boardSim.currentStateB)
+            print("state ", state)
             for t in itertools.count():
                 list_NextStates = self.getListNextStatesW(state)
+                list_NextStates = self.normalize_list(list_NextStates, state)
+
                 if len(list_NextStates) == 0:
                     print("no hay estado sucesores")
-                next_state = self.epsilonGreedy(state,list_NextStates,qlearn)
 
+                next_state = self.epsilonGreedy(state,list_NextStates,qlearn)
+                self.chess.boardSim.print_board()
+                print("nos movemos de ",state," ===> ", next_state)
+                if state == next_state:
+                    print("Atencion tenemos un next_state = state")
+                    print(list_NextStates)
                 #hacemos el movimiento
                 self.hacer_movimiento(state, next_state)
                 self.elimina_piece(next_state, self.chess.boardSim.currentStateB)
-                self.chess.boardSim.print_board()
+
+                print("Estado state: ", state)
+                print("Estado next_state: ", next_state)
 
                 #si el siguiente estado es nuevo en el qlearn
                 if qlearn.get(str(next_state)) == None:
                     lista = self.getListNextStatesW(next_state)
+                    lista = self.normalize_list(lista, next_state)
                     qlearn[str(next_state)] = self.crear_posicion(next_state,qlearn,lista)
-
 
                 reward = self.reward(next_state)
                 qlearn[str(state)]['moves'][str(next_state)] = qlearn[str(next_state)]['value']
@@ -349,14 +380,11 @@ class Aichess():
                 qlearn[str(state)]['value'] = alpha*td_target
                 if self.isCheckMate_2(next_state,self.chess.boardSim.currentStateB):
                     print("Check Mate")
+                    self.chess.boardSim.print_board()
                     break
                 state = next_state
 
-
-            self.chess = chess_temp
-            self.chess.boardSim.currentStateW = [[7, 0, 2], [7, 4, 6]]
-            self.chess.boardSim.currentStateB = [[0, 4, 12]]
-
+            self.chess = copy.deepcopy(chess_temp)
 
         return qlearn
 
@@ -372,210 +400,15 @@ class Aichess():
         posible, 10% que sea un movimiento random.
         """
         if np.random.rand() < epsilon:
-
             best_state_str = max(qlearn[str(sta)]['moves'], key=qlearn[str(sta)]['moves'].get)
             best_state = self.conversor(best_state_str)#transformamos el indice del mejor mov de str a lista de listas
             return best_state
         else:
+            print()
             x = np.random.randint(0, len(listNextStates))  # Pick a random number between 1 and 100.
             if len(listNextStates) == 0:
                 print("no hay estado sucesores")
             return listNextStates[x]
-
-    def miniMax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
-
-        if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
-            return None, self.evaluate(currentStatePlayer, currentStateRival,color)
-
-        best_move = None
-        if player:
-            max_eval = -9999999
-            lista_player = self.getListnextStatesX(currentStatePlayer)
-            for nei in lista_player:
-                if self.nei_corrector(nei, currentStatePlayer):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStatePlayer, nei)
-                    self.elimina_piece(nei, currentStateRival)
-                    current_eval = self.miniMax(currentStatePlayer, currentStateRival, depth - 1, False, color)[1]
-                    self.chess = chess_temp
-                    if color:  # si color es true, minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval >= max_eval:
-                        max_eval = current_eval
-                        best_move = nei
-            return best_move, max_eval
-
-        else:
-            min_eval = 9999999
-            lista_rival = self.getListnextStatesX(currentStateRival)
-            for nei in lista_rival:
-                if self.nei_corrector(nei, currentStateRival):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStateRival, nei)
-                    self.elimina_piece(nei, currentStatePlayer)
-                    current_eval = self.miniMax(currentStatePlayer, currentStateRival, depth - 1, True, color)[1]
-                    self.chess = chess_temp
-                    if color:  # si color es true minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval <= min_eval:
-                        min_eval = current_eval
-                        best_move = nei
-            return best_move, min_eval
-
-    def miniMax_ALphaBeta(self,currentStatePlayer,currentStateRival,depth,alpha,beta, player=True,color= True):
-
-        if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
-            return None, self.evaluate(currentStatePlayer, currentStateRival,color)
-
-        best_move = None
-        if player:
-            max_eval = -9999999
-            lista_player = self.getListnextStatesX(currentStatePlayer)
-            for nei in lista_player:
-                if self.nei_corrector(nei, currentStatePlayer):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStatePlayer, nei)
-                    self.elimina_piece(nei, currentStateRival)
-                    current_eval = self.miniMax_ALphaBeta(currentStatePlayer, currentStateRival, depth - 1,depth,alpha, False, color)[1]
-                    self.chess = chess_temp
-                    if color:  # si color es true, minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval >= max_eval:
-                        max_eval = current_eval
-                        best_move = nei
-                    alpha = max(alpha, current_eval)
-                    if beta <= alpha:
-                        break
-            return best_move, max_eval
-
-        else:
-            min_eval = 9999999
-            lista_rival = self.getListnextStatesX(currentStateRival)
-            for nei in lista_rival:
-                if self.nei_corrector(nei, currentStateRival):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStateRival, nei)
-                    self.elimina_piece(nei, currentStatePlayer)
-                    current_eval = self.miniMax_ALphaBeta(currentStatePlayer, currentStateRival, depth - 1,alpha,beta, True, color)[1]
-                    self.chess = chess_temp
-                    if color:  # si color es true minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval <= min_eval:
-                        min_eval = current_eval
-                        best_move = nei
-                    beta = min(beta, current_eval)
-                    if beta <= alpha:
-                        break
-            return best_move, min_eval
-
-    def posibilidad_movimientos(self,n):
-        """
-        Args:
-            n: tamaño del vector
-
-        Returns:Devolverá un vector con las posibilidades que tiene cada jugada obtenida con la función
-        getListnextStatesX. Cada vez que se llamara devolverá un valor random. Como las posibilidades en
-        expectimax siempre han de sumar 1, normalizaremos este vector de posibilidades.
-        """
-        if n ==0:
-            return [0]
-        sampl = np.random.uniform(low=0.1, high=10, size=(n,))
-        norma = np.sum(sampl)
-        normalized = sampl / norma
-        return normalized
-
-
-    def expectimax(self,currentStatePlayer,currentStateRival,depth,player=True,color= True):
-        #En este algoritmo daremos por hecho que no sabemos que hará el jugador rival.
-        if depth == 0 or self.isCheckMate(currentStatePlayer, currentStateRival):
-            if self.isCheckMate(currentStatePlayer, currentStateRival):
-                return None, self.evaluate(currentStatePlayer, currentStateRival, color), True
-            return None, self.evaluate(currentStatePlayer, currentStateRival,color), False
-
-        best_move = None
-        devolucion = True
-        if player:
-            max_eval = -9999999
-            lista_player = self.getListnextStatesX(currentStatePlayer)
-            for nei in lista_player:
-                if self.nei_corrector(nei, currentStatePlayer):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStatePlayer, nei)
-                    self.elimina_piece(nei, currentStateRival)
-                    current_eval = self.expectimax(currentStatePlayer, currentStateRival, depth - 1, False, color)
-                    self.chess = chess_temp
-                    if color:  # si color es true, minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval[1] >= max_eval:
-                        max_eval = current_eval[1]
-                        best_move = nei
-                        devolucion = current_eval[2]
-            return best_move, max_eval, devolucion
-
-        else:
-            min_eval = 999999
-            min_posi = 0
-            lista_rival = self.getListnextStatesX(currentStateRival)
-            posibilities = self.posibilidad_movimientos(len(lista_rival))
-            indice = 0
-
-            for nei in lista_rival:
-                if self.nei_corrector(nei, currentStateRival):
-                    chess_temp = copy.deepcopy(self.chess)
-                    self.hacer_movimiento(currentStateRival, nei)
-                    self.elimina_piece(nei, currentStatePlayer)
-                    current_eval = self.expectimax(currentStatePlayer, currentStateRival, depth - 1, True, color)
-                    self.chess = chess_temp
-                    if color:  # si color es true minimax ha sido llamado por los blancos.
-                        currentStatePlayer = self.chess.boardSim.currentStateW
-                        currentStateRival = self.chess.boardSim.currentStateB
-                    else:  # si es false ha sido llamado por los negros.
-                        currentStatePlayer = self.chess.boardSim.currentStateB
-                        currentStateRival = self.chess.boardSim.currentStateW
-                    if current_eval[2]:
-                        if min_eval <= current_eval[1]:
-                            min_eval = current_eval[1]
-                            best_move = nei
-                    else:
-                        min_posi += posibilities[indice] * current_eval[1]
-                indice += 1
-            if min_posi < min_eval:
-                best_move = None
-                min_eval = min_posi
-                devolucion = False
-
-            return best_move, min_eval, devolucion
-    def max_value(self, currentState):
-        # Your Code here
-
-        v = float('-inf')
-        return 0
-
-    def min_value(self, currentState):
-        # Your Code here
-
-        v = float('inf')
-        return 0
 
 def translate(s):
     """
@@ -625,7 +458,7 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    aichess.qLearning(currentStateW,10)
+    aichess.qLearning(currentStateW,100)
 
     # get list of next states for current state
     print("current State Black", currentStateB)
