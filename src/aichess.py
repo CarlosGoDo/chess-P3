@@ -394,6 +394,141 @@ class Aichess():
 
         return qlearn
 
+    def qLearningMultiplayer(self,currentStateW,currentStateB, num_episodes, discount_factor = 1.0,
+                                              epsilon = 0.9, alpha = 0.6):
+
+        white = True
+
+        qlearnW = {}
+        qlearnB = {}
+
+        listaW = self.getListnextStatesX(currentStateW)
+        listaW = self.normalize_list(listaW,currentStateW)
+
+        listaB = self.getListnextStatesX(currentStateB)
+        listaB = self.normalize_list(listaB, currentStateB)
+
+        # creamos la primera posición de nuestro Qlearn.
+        qlearnW[str(currentStateW)] = self.crear_posicion(currentStateW,qlearnW,listaW)
+        qlearnB[str(currentStateB)] = self.crear_posicion(currentStateB, qlearnB, listaB)
+
+        for iteration in range(num_episodes):
+            print("######################################Empieza otra partida", iteration,"#################################")
+
+            stateW = self.chess.boardSim.currentStateW.copy()
+            stateB = self.chess.boardSim.currentStateB.copy()
+            chess_temp = copy.deepcopy(self.chess)
+
+            print("Estado de las blancas: ", self.chess.boardSim.currentStateW)
+            print("Estado de las negras: ", self.chess.boardSim.currentStateB)
+
+            for t in itertools.count():
+
+                if white:
+
+                    listaW = self.getListnextStatesX(stateW)
+                    listaW = self.normalize_list(listaW, stateW)
+                    print("Siguientes posibles estados: ", listaW)
+
+                    if len(listaW) == 0:
+                        print("no hay estado sucesores")
+
+                    print("qLearn W: ", qlearnW)
+                    next_stateW = self.epsilonGreedy(stateW,listaW,qlearnW,epsilon)
+                    self.chess.boardSim.print_board()
+                    print("nos movemos de ",stateW," ===> ", next_stateW)
+
+                    previousW = copy.copy(stateW)
+                    print("Estado state: ", stateW)
+                    print("previus: ", previousW)
+
+                    #hacemos el movimiento
+                    print("hacemos el movimiento")
+                    self.hacer_movimiento(stateW, next_stateW)
+                    self.elimina_piece(next_stateW, stateB)
+                    print("previous: ", previousW)
+                    stateW = previousW.copy()
+                    print("Estado state: ", stateW)
+                    print("Estado next_state: ", next_stateW)
+
+                    #si el siguiente estado es nuevo en el qlearn
+                    if qlearnW.get(str(next_stateW)) == None:
+                        listaW = self.getListnextStatesX(next_stateW)
+                        listaW = self.normalize_list(listaW, next_stateW)
+                        qlearnW[str(next_stateW)] = self.crear_posicion(next_stateW,qlearnW,listaW)
+
+                    reward = self.reward(next_stateW)
+                    if stateW == next_stateW:
+                        print("pasa algo")
+
+                    qlearnW[str(stateW)]['moves'][str(next_stateW)] = qlearnW[str(next_stateW)]['value']
+                    best_next_action = max(qlearnW[str(next_stateW)]['moves'], key=qlearnW[str(next_stateW)]['moves'].get)
+                    td_target = reward + discount_factor*(qlearnW[str(next_stateW)]['value']) - qlearnW[str(stateW)]['value']
+                    qlearnW[str(stateW)]['value'] = alpha*td_target
+
+                    if self.isCheckMate_2(next_stateW,self.chess.boardSim.currentStateB):
+                        print("Check Mate")
+                        self.chess.boardSim.print_board()
+                        break
+
+                    stateW = next_stateW.copy()
+                    white = False
+
+                else:
+
+                    listaB = self.getListnextStatesX(stateB)
+                    listaB = self.normalize_list(listaB, stateB)
+                    print("Siguientes posibles estados: ", listaB)
+
+                    if len(listaB) == 0:
+                        print("no hay estado sucesores")
+
+                    print("qLearn B: ", qlearnB)
+                    next_stateB = self.epsilonGreedy(stateB, listaB, qlearnB, epsilon)
+                    self.chess.boardSim.print_board()
+                    print("nos movemos de ", stateB, " ===> ", next_stateB)
+
+                    previousB = copy.copy(stateB)
+                    print("Estado state: ", stateB)
+                    print("previous: ", previousB)
+
+                    # hacemos el movimiento
+                    print("hacemos el movimiento")
+                    self.hacer_movimiento(stateB, next_stateB)
+                    self.elimina_piece(next_stateB, stateW)
+                    print("previous: ", previousB)
+                    stateB = previousB.copy()
+                    print("Estado state: ", stateB)
+                    print("Estado next_state: ", next_stateB)
+
+                    # si el siguiente estado es nuevo en el qlearn
+                    if qlearnB.get(str(next_stateB)) == None:
+                        listaB = self.getListnextStatesX(next_stateB)
+                        listaB = self.normalize_list(listaB, next_stateB)
+                        qlearnB[str(next_stateB)] = self.crear_posicion(next_stateB, qlearnB, listaB)
+
+                    reward = self.reward(next_stateB)
+                    if stateB == next_stateB:
+                        print("pasa algo")
+
+                    qlearnB[str(stateB)]['moves'][str(next_stateB)] = qlearnB[str(next_stateB)]['value']
+                    best_next_action = max(qlearnB[str(next_stateB)]['moves'], key=qlearnB[str(next_stateB)]['moves'].get)
+                    td_target = reward + discount_factor * (qlearnB[str(next_stateB)]['value']) - qlearnB[str(stateB)][
+                        'value']
+                    qlearnB[str(stateB)]['value'] = alpha * td_target
+
+                    if self.isCheckMate_2(next_stateB, self.chess.boardSim.currentStateW):
+                        print("Check Mate")
+                        self.chess.boardSim.print_board()
+                        break
+
+                    stateB = next_stateB.copy()
+                    white = True
+
+            self.chess = chess_temp
+
+        return qlearnW, qlearnB
+
     def epsilonGreedy(self,sta ,listNextStates, qlearn,epsilon = 0.9):
         """
 
@@ -453,10 +588,10 @@ if __name__ == "__main__":
     # TA[0][4] = 12
 
     TA[7][0] = 2
-    TA[7][4] = 6
+    TA[7][5] = 6
 
-    #TA[0][0] = 8
-    TA[0][4] = 12
+    TA[0][0] = 8
+    TA[0][5] = 12
     # initialise board
     print("stating AI chess... ")
     aichess = Aichess(TA, True)
@@ -467,7 +602,9 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    aux = aichess.qLearning(currentStateW,100)
+    #aux = aichess.qLearning(currentStateW,100)
+    aux = aichess.qLearningMultiplayer(currentStateW,currentStateB,100)
+
 
     # get list of next states for current state
     print("current State Black", currentStateB)
