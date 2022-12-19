@@ -205,15 +205,21 @@ class Aichess():
         return False
 
 
-    def isCheckMate_2(self, currentState_Player, currentState_Rival):
+    def isCheckMate_2(self, currentState_Player, currentState_Rival,color):
         # Your Code
+        # Return 1 jaque mate a favor de las blancas
+        # Return 2 jaque mate a favor de las Negras
 
-        if len(currentState_Rival) == 0 or len(currentState_Player) == 0:
-            return True
-        if len(currentState_Rival) == 1  and (currentState_Rival[0][2]== 8 or currentState_Rival[0][2]== 2):
-            return True
-        if len(currentState_Player) == 1 and (currentState_Player[0][2]== 2 or currentState_Player[0][2]== 8):
-            return True
+        if color:
+            if len(currentState_Rival) == 0:
+                return 1
+            if len(currentState_Rival) == 1 and currentState_Rival[0][2] == 8:
+                return 1
+        else:
+            if len(currentState_Rival) == 0:
+                return 2
+            if len(currentState_Rival) == 1 and currentState_Rival[0][2] == 2:
+                return 2
         return False
 
     def func_heuristic(self, estado1, estado2):
@@ -262,10 +268,21 @@ class Aichess():
             return value
         else:# si la funcion minimax ha sido llamada por las piezas negras
             return -value
-    def reward(self,currentState):
+    def reward(self,currentState, color = True):
 
-        if self.isCheckMate_2(currentState,self.chess.boardSim.currentStateB):
-            return 100
+        if color:
+            if self.isCheckMate_2(currentState,self.chess.boardSim.currentStateB, color) == 1:
+                return 100
+            if self.isCheckMate_2(currentState, self.chess.boardSim.currentStateB, color) == 2:
+                return -100
+            return -1
+
+        else:
+            if self.isCheckMate_2(currentState, self.chess.boardSim.currentStateW, color) == 2:
+                return 100
+            if self.isCheckMate_2(currentState, self.chess.boardSim.currentStateW, color) == 1:
+                return -100
+            return -1
 
         return -1
 
@@ -384,7 +401,7 @@ class Aichess():
                 best_next_action = max(qlearn[str(next_state)]['moves'], key=qlearn[str(next_state)]['moves'].get)
                 td_target = reward + discount_factor*(qlearn[str(next_state)]['value']) - qlearn[str(state)]['value']
                 qlearn[str(state)]['value'] = alpha*td_target
-                if self.isCheckMate_2(next_state,self.chess.boardSim.currentStateB):
+                if self.isCheckMate_2(next_state,self.chess.boardSim.currentStateB,True):
                     print("Check Mate")
                     self.chess.boardSim.print_board()
                     break
@@ -461,12 +478,13 @@ class Aichess():
                     td_target = reward + discount_factor*(qlearnW[str(next_stateW)]['value']) - qlearnW[str(stateW)]['value']
                     qlearnW[str(stateW)]['value'] = alpha*td_target
 
-                    if self.isCheckMate_2(next_stateW,self.chess.boardSim.currentStateB):
+                    if self.isCheckMate_2(next_stateW,self.chess.boardSim.currentStateB,True):
                         print("Check Mate")
                         self.chess.boardSim.print_board()
                         break
 
                     stateW = next_stateW.copy()
+                    stateB = self.chess.boardSim.currentStateB.copy()
                     white = False
 
                 else:
@@ -508,12 +526,13 @@ class Aichess():
                         'value']
                     qlearnB[str(stateB)]['value'] = alpha * td_target
 
-                    if self.isCheckMate_2(next_stateB, self.chess.boardSim.currentStateW):
+                    if self.isCheckMate_2(next_stateB, self.chess.boardSim.currentStateW, False):
                         print("Check Mate")
                         self.chess.boardSim.print_board()
                         break
 
                     stateB = next_stateB.copy()
+                    stateW = self.chess.boardSim.currentStateW.copy()
                     white = True
 
             self.chess = copy.deepcopy(chess_temp)
@@ -599,8 +618,8 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    #aux = aichess.qLearning(currentStateW,2000)
-    aux = aichess.qLearningMultiplayer(currentStateW,currentStateB,100)
+    aux = aichess.qLearning(currentStateW,2000)
+    #aux = aichess.qLearningMultiplayer(currentStateW,currentStateB,1000 )
 
 
     # get list of next states for current state
