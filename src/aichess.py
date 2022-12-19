@@ -409,8 +409,8 @@ class Aichess():
         listaB = self.normalize_list(listaB, currentStateB)
 
         # creamos la primera posición de nuestro Qlearn.
-        qlearnW[str(currentStateW)] = self.crear_posicion(currentStateW,qlearnW,listaW)
-        qlearnB[str(currentStateB)] = self.crear_posicion(currentStateB, qlearnB, listaB)
+        qlearnW[str(currentStateW + currentStateB )] = self.crear_posicion(currentStateW,qlearnW,listaW)
+        qlearnB[str(currentStateB + currentStateW)] = self.crear_posicion(currentStateB, qlearnB, listaB)
 
         for iteration in range(num_episodes):
             print("######################################Empieza otra partida", iteration,"#################################")
@@ -425,28 +425,23 @@ class Aichess():
             for t in itertools.count():
 
                 if white:
-
+                    print("Juegan las blancas")
                     listaW = self.getListnextStatesX(stateW)
                     listaW = self.normalize_list(listaW, stateW)
                     print("Siguientes posibles estados: ", listaW)
 
                     if len(listaW) == 0:
-                        print("no hay estado sucesores")
+                        print("no hay estado sucesores W")
 
-                    print("qLearn W: ", qlearnW)
                     next_stateW = self.epsilonGreedy(stateW,listaW,qlearnW,epsilon)
                     self.chess.boardSim.print_board()
                     print("nos movemos de ",stateW," ===> ", next_stateW)
 
                     previousW = copy.copy(stateW)
-                    print("Estado state: ", stateW)
-                    print("previus: ", previousW)
-
                     #hacemos el movimiento
                     print("hacemos el movimiento")
                     self.hacer_movimiento(stateW, next_stateW)
                     self.elimina_piece(next_stateW, stateB)
-                    print("previous: ", previousW)
                     stateW = previousW.copy()
                     print("Estado state: ", stateW)
                     print("Estado next_state: ", next_stateW)
@@ -475,28 +470,24 @@ class Aichess():
                     white = False
 
                 else:
-
+                    print("nueva jugada estado ==>", stateB)
                     listaB = self.getListnextStatesX(stateB)
                     listaB = self.normalize_list(listaB, stateB)
                     print("Siguientes posibles estados: ", listaB)
 
                     if len(listaB) == 0:
-                        print("no hay estado sucesores")
+                        print("no hay estado sucesores B")
 
-                    print("qLearn B: ", qlearnB)
                     next_stateB = self.epsilonGreedy(stateB, listaB, qlearnB, epsilon)
                     self.chess.boardSim.print_board()
                     print("nos movemos de ", stateB, " ===> ", next_stateB)
 
                     previousB = copy.copy(stateB)
-                    print("Estado state: ", stateB)
-                    print("previous: ", previousB)
 
                     # hacemos el movimiento
                     print("hacemos el movimiento")
                     self.hacer_movimiento(stateB, next_stateB)
                     self.elimina_piece(next_stateB, stateW)
-                    print("previous: ", previousB)
                     stateB = previousB.copy()
                     print("Estado state: ", stateB)
                     print("Estado next_state: ", next_stateB)
@@ -525,7 +516,7 @@ class Aichess():
                     stateB = next_stateB.copy()
                     white = True
 
-            self.chess = chess_temp
+            self.chess = copy.deepcopy(chess_temp)
 
         return qlearnW, qlearnB
 
@@ -540,6 +531,12 @@ class Aichess():
         Returns:Devuelve la siguiente posicion a la que se dirige el bot. 90% de prob que sea el mejor movimiento
         posible, 10% que sea un movimiento random.
         """
+
+        if qlearn.get(str(sta)) == None:#si el estado sta no existe en qlearn lo creamos.
+            lista = self.getListnextStatesX(sta)
+            lista = self.normalize_list(lista, sta)
+            qlearn[str(sta)] = self.crear_posicion(sta, qlearn, lista)
+
         if qlearn[str(sta)]['moves'].get(str(sta)) != None:
             del qlearn[str(sta)]['moves'][str(sta)]
         if np.random.rand() < epsilon:
@@ -602,7 +599,7 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    #aux = aichess.qLearning(currentStateW,100)
+    #aux = aichess.qLearning(currentStateW,2000)
     aux = aichess.qLearningMultiplayer(currentStateW,currentStateB,100)
 
 
