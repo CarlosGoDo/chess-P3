@@ -18,6 +18,7 @@ import time
 from itertools import permutations
 import random
 import itertools
+import matplotlib.pyplot as plt
 from random import *
 
 
@@ -349,7 +350,7 @@ class Aichess():
 
     def qLearning(self,currentState, num_episodes, discount_factor = 1.0,
                                               epsilon = 0.9, alpha = 0.6):
-
+        stats = []
         qlearn = {}
         lista = self.getListnextStatesX(currentState)
         lista = self.normalize_list(lista,currentState)
@@ -398,24 +399,26 @@ class Aichess():
                 if state == next_state:
                     print("pasa algo")
                 qlearn[str(state)]['moves'][str(next_state)] = qlearn[str(next_state)]['value']
-                best_next_action = max(qlearn[str(next_state)]['moves'], key=qlearn[str(next_state)]['moves'].get)
-                td_target = reward + discount_factor*(qlearn[str(next_state)]['value']) - qlearn[str(state)]['value']
+                best_next_action = max(qlearn[str(next_state)]['moves'].values())
+                td_target = reward + discount_factor*best_next_action - qlearn[str(state)]['value']
                 qlearn[str(state)]['value'] = alpha*td_target
                 if self.isCheckMate_2(next_state,self.chess.boardSim.currentStateB,True):
                     print("Check Mate")
                     self.chess.boardSim.print_board()
+                    stats.append(t)
                     break
                 state = next_state.copy()
 
             self.chess = copy.deepcopy(chess_temp)
 
-        return qlearn
+        return qlearn, np.array(stats)
 
     def qLearningMultiplayer(self,currentStateW,currentStateB, num_episodes, discount_factor = 1.0,
                                               epsilon = 0.9, alpha = 0.6):
-
+        wins_W =0
+        wins_B = 0
         white = True
-
+        stats = []
         qlearnW = {}
         qlearnB = {}
 
@@ -474,13 +477,19 @@ class Aichess():
                         print("pasa algo")
 
                     qlearnW[str(stateW)]['moves'][str(next_stateW)] = qlearnW[str(next_stateW)]['value']
-                    best_next_action = max(qlearnW[str(next_stateW)]['moves'], key=qlearnW[str(next_stateW)]['moves'].get)
-                    td_target = reward + discount_factor*(qlearnW[str(next_stateW)]['value']) - qlearnW[str(stateW)]['value']
+                    best_next_action = max(qlearnW[str(next_stateW)]['moves'].values())
+                    td_target = reward + discount_factor * best_next_action - qlearnW[str(stateW)]['value']
                     qlearnW[str(stateW)]['value'] = alpha*td_target
+                    result = self.isCheckMate_2(next_stateW,self.chess.boardSim.currentStateB,True)
+                    if result:
+                        if result == 1:
+                            wins_W +=1
+                        elif result ==2:
+                            wins_B +=1
 
-                    if self.isCheckMate_2(next_stateW,self.chess.boardSim.currentStateB,True):
                         print("Check Mate")
                         self.chess.boardSim.print_board()
+                        stats.append(t)
                         break
 
                     stateW = next_stateW.copy()
@@ -521,23 +530,29 @@ class Aichess():
                         print("pasa algo")
 
                     qlearnB[str(stateB)]['moves'][str(next_stateB)] = qlearnB[str(next_stateB)]['value']
-                    best_next_action = max(qlearnB[str(next_stateB)]['moves'], key=qlearnB[str(next_stateB)]['moves'].get)
-                    td_target = reward + discount_factor * (qlearnB[str(next_stateB)]['value']) - qlearnB[str(stateB)][
+                    best_next_action = max(qlearnB[str(next_stateB)]['moves'].values())
+                    td_target = reward + discount_factor * best_next_action - qlearnB[str(stateB)][
                         'value']
                     qlearnB[str(stateB)]['value'] = alpha * td_target
-
-                    if self.isCheckMate_2(next_stateB, self.chess.boardSim.currentStateW, False):
+                    result = self.isCheckMate_2(next_stateB, self.chess.boardSim.currentStateW, False)
+                    if result:
+                        if result == 1:
+                            wins_W +=1
+                        elif result ==2:
+                            wins_B +=1
                         print("Check Mate")
                         self.chess.boardSim.print_board()
+                        stats.append(t)
                         break
 
                     stateB = next_stateB.copy()
                     stateW = self.chess.boardSim.currentStateW.copy()
                     white = True
 
+
             self.chess = copy.deepcopy(chess_temp)
 
-        return qlearnW, qlearnB
+        return qlearnW, qlearnB,np.array(stats),wins_W,wins_B
 
     def epsilonGreedy(self,sta ,listNextStates, qlearn,epsilon = 0.9):
         """
@@ -618,10 +633,23 @@ if __name__ == "__main__":
     aichess.chess.boardSim.print_board()
     temp = copy.deepcopy(aichess.chess)
 
-    aux = aichess.qLearning(currentStateW,2000)
-    #aux = aichess.qLearningMultiplayer(currentStateW,currentStateB,1000 )
-
-
+    aux, stats = aichess.qLearning(currentStateW,2000)
+    #aux,aux2,stats,wins_W,wins_B= aichess.qLearningMultiplayer(currentStateW,currentStateB,2000 )
+    print("Media de movimientos por partida",np.mean(stats))
+    print(stats)
+    #print("W",wins_W)
+    #print("B", wins_B)
+    #plt.bar(np.arange(start=1, stop=2001, step=1),statsW)
+    plt.plot(stats)
+    # naming the x axis
+    plt.xlabel('Number of the game')
+    # naming the y axis
+    plt.ylabel('nº of moves per game')
+    # giving a title to my graph
+    plt.title('moves in each game')
+    # function to show the plot
+    plt.show()
+    """
     # get list of next states for current state
     print("current State Black", currentStateB)
     print("current State White", currentStateW)
@@ -636,5 +664,5 @@ if __name__ == "__main__":
     print("#Visited sequence...  ", aichess.listVisitedStates)
     print("#Current State White...  ", aichess.chess.board.currentStateW)
     print("#Current State Black...  ", aichess.chess.board.currentStateB)
-
+    """
 
